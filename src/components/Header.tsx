@@ -2,10 +2,12 @@
 import { useState, useEffect } from 'react';
 import { MenuIcon, X } from 'lucide-react';
 import Button from './Button';
+import { Link, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +18,10 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 md:px-8 lg:px-16 py-4 ${
@@ -25,9 +31,9 @@ const Header = () => {
       }`}
     >
       <div className="mx-auto flex items-center justify-between">
-        <a href="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2">
           <img 
-            src="/lovable-uploads/b75aad07-8762-4182-bbde-f65c1ce89f14.png" 
+            src="/lovable-uploads/411fb9d2-e378-4aba-8c13-a7b3f77e6e75.png" 
             alt="Anondopath Logo" 
             className="h-10"
           />
@@ -36,25 +42,60 @@ const Header = () => {
           }`}>
             Anondopath
           </span>
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#features" className="text-anondopath-blue hover:text-anondopath-teal transition-colors">
+          <Link 
+            to="/features" 
+            className={`transition-colors ${
+              isActive('/features') 
+                ? 'text-anondopath-teal font-medium' 
+                : 'text-anondopath-blue hover:text-anondopath-teal'
+            }`}
+          >
             Features
-          </a>
-          <a href="#how-it-works" className="text-anondopath-blue hover:text-anondopath-teal transition-colors">
+          </Link>
+          <Link 
+            to="/how-it-works" 
+            className={`transition-colors ${
+              isActive('/how-it-works') 
+                ? 'text-anondopath-teal font-medium' 
+                : 'text-anondopath-blue hover:text-anondopath-teal'
+            }`}
+          >
             How It Works
-          </a>
-          <a href="#testimonials" className="text-anondopath-blue hover:text-anondopath-teal transition-colors">
+          </Link>
+          <Link 
+            to="/testimonials" 
+            className={`transition-colors ${
+              isActive('/testimonials') 
+                ? 'text-anondopath-teal font-medium' 
+                : 'text-anondopath-blue hover:text-anondopath-teal'
+            }`}
+          >
             Testimonials
-          </a>
-          <a href="#pricing" className="text-anondopath-blue hover:text-anondopath-teal transition-colors">
+          </Link>
+          <Link 
+            to="/pricing" 
+            className={`transition-colors ${
+              isActive('/pricing') 
+                ? 'text-anondopath-teal font-medium' 
+                : 'text-anondopath-blue hover:text-anondopath-teal'
+            }`}
+          >
             Pricing
-          </a>
-          <a href="#blog" className="text-anondopath-blue hover:text-anondopath-teal transition-colors">
+          </Link>
+          <Link 
+            to="/blog" 
+            className={`transition-colors ${
+              isActive('/blog') 
+                ? 'text-anondopath-teal font-medium' 
+                : 'text-anondopath-blue hover:text-anondopath-teal'
+            }`}
+          >
             Blog
-          </a>
+          </Link>
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
@@ -83,41 +124,51 @@ const Header = () => {
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg pb-4 px-4 pt-2 animate-fade-in">
           <nav className="flex flex-col space-y-3">
-            <a 
-              href="#features" 
-              className="text-anondopath-blue py-2 border-b border-gray-100"
+            <Link 
+              to="/features" 
+              className={`py-2 border-b border-gray-100 ${
+                isActive('/features') ? 'text-anondopath-teal font-medium' : 'text-anondopath-blue'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Features
-            </a>
-            <a 
-              href="#how-it-works" 
-              className="text-anondopath-blue py-2 border-b border-gray-100"
+            </Link>
+            <Link 
+              to="/how-it-works" 
+              className={`py-2 border-b border-gray-100 ${
+                isActive('/how-it-works') ? 'text-anondopath-teal font-medium' : 'text-anondopath-blue'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               How It Works
-            </a>
-            <a 
-              href="#testimonials" 
-              className="text-anondopath-blue py-2 border-b border-gray-100"
+            </Link>
+            <Link 
+              to="/testimonials" 
+              className={`py-2 border-b border-gray-100 ${
+                isActive('/testimonials') ? 'text-anondopath-teal font-medium' : 'text-anondopath-blue'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Testimonials
-            </a>
-            <a 
-              href="#pricing" 
-              className="text-anondopath-blue py-2 border-b border-gray-100"
+            </Link>
+            <Link 
+              to="/pricing" 
+              className={`py-2 border-b border-gray-100 ${
+                isActive('/pricing') ? 'text-anondopath-teal font-medium' : 'text-anondopath-blue'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Pricing
-            </a>
-            <a 
-              href="#blog" 
-              className="text-anondopath-blue py-2 border-b border-gray-100"
+            </Link>
+            <Link 
+              to="/blog" 
+              className={`py-2 border-b border-gray-100 ${
+                isActive('/blog') ? 'text-anondopath-teal font-medium' : 'text-anondopath-blue'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Blog
-            </a>
+            </Link>
             <div className="flex flex-col space-y-2 pt-2">
               <Button variant="outline" onClick={() => setMobileMenuOpen(false)}>
                 Login
