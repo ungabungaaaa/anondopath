@@ -1,16 +1,13 @@
-
 import React, { useEffect, useRef } from 'react';
 
 // Updated partners with real logos
 const partners = [
-  { id: 1, name: "ITU", logo: "/lovable-uploads/ITU_logo.png", grayscale: true },
-  { id: 2, name: "GCYLP", logo: "/lovable-uploads/GCYLP_logo.png", grayscale: true },
-  { id: 3, name: "Accelerating Bangladesh", logo: "/lovable-uploads/AcceleratingBangladesh_logo.png", grayscale: true },
-  { id: 4, name: "Learning Partner", logo: "/lovable-uploads/LearningPartner_logo.png", grayscale: true },
-  { id: 5, name: "Education First", logo: "/lovable-uploads/EducationFirst_logo.png", grayscale: true },
-  { id: 6, name: "Global Learning", logo: "/lovable-uploads/GlobalLearning_logo.png", grayscale: true },
-  { id: 7, name: "Tech School", logo: "/lovable-uploads/TechSchool_logo.png", grayscale: true },
-  { id: 8, name: "Digital Education", logo: "/lovable-uploads/DigitalEducation_logo.png", grayscale: true }
+  { id: 1, name: "ITU", logo: "/lovable-uploads/9ea336e8-3047-45ea-b900-035bd722b745.png", grayscale: true },
+  { id: 2, name: "Accelerating Bangladesh", logo: "/lovable-uploads/4691b47e-025a-4bff-8519-42f22871464a.png", grayscale: true },
+  { id: 3, name: "Digital Bangladesh", logo: "/lovable-uploads/33133015-bac0-40f3-80f6-932c44694ce8.png", grayscale: true },
+  { id: 4, name: "University Innovation Hub", logo: "/lovable-uploads/af2d40e0-efdf-4657-b7c9-233f69143ca8.png", grayscale: true },
+  { id: 5, name: "Youth Startup Summit", logo: "/lovable-uploads/b9e915eb-1db8-490a-a2d5-02bc79f90c67.png", grayscale: true },
+  { id: 6, name: "Turtle Venture", logo: "/lovable-uploads/9d825685-acd1-4773-be63-4d20d963ea51.png", grayscale: true }
 ];
 
 const PartnersSlider = () => {
