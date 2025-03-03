@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Button from './Button';
-import { ArrowRight, Download, BookOpen, Video, Chart, Brain } from 'lucide-react';
+import { ArrowRight, Download, BookOpen, Video, BarChart, Brain } from 'lucide-react';
 
 const Hero = () => {
   return (
@@ -84,7 +84,7 @@ const Hero = () => {
               <div className="glass absolute -left-6 md:left-0 bottom-[30%] p-4 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer animate-float" style={{ animationDelay: '1.5s' }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-cyan/10 p-2 rounded-lg">
-                    <Chart className="h-5 w-5 text-anondopath-cyan" />
+                    <BarChart className="h-5 w-5 text-anondopath-cyan" />
                   </div>
                   <p className="font-medium text-sm md:text-base">Progress Tracking</p>
                 </div>
