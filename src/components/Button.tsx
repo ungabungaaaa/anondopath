@@ -3,7 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'white' | 'outline-white';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
   className?: string;
@@ -24,7 +24,9 @@ const Button = ({
     primary: "bg-gradient-to-r from-anondopath-blue to-anondopath-teal text-white shadow hover:opacity-90",
     secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
     outline: "border border-anondopath-teal text-anondopath-blue bg-transparent hover:bg-anondopath-teal/10",
-    ghost: "text-anondopath-blue hover:bg-anondopath-blue/10"
+    ghost: "text-anondopath-blue hover:bg-anondopath-blue/10",
+    white: "bg-white text-anondopath-blue shadow hover:bg-gray-100",
+    "outline-white": "border border-white text-white bg-transparent hover:bg-white/10"
   };
   
   const sizeClasses = {
