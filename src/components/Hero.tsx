@@ -43,20 +43,8 @@ const Hero = () => {
 
           {/* Right side with Student Image and Floating Cards */}
           <div className="w-full lg:w-1/2 relative min-h-[480px] mt-8 md:mt-0">
-            {/* Student Image - Positioned in background */}
-            <div className="absolute inset-0 z-0 flex items-center justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 -bottom-10 -z-10 bg-gradient-to-b from-anondopath-blue/10 to-transparent rounded-full blur-xl"></div>
-                <img 
-                  src="/lovable-uploads/d900ce84-1f4b-476d-9ecf-e338d4b38198.png" 
-                  alt="Student using Anondopath" 
-                  className="h-auto max-h-[420px] object-contain mx-auto"
-                />
-              </div>
-            </div>
-
             {/* Floating Feature Cards - Positioned in foreground with higher z-index */}
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div className="relative z-20 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* Interactive Quizzes */}
               <div className="glass p-5 rounded-xl shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white/90 backdrop-blur-md ml-0 md:ml-0 mt-0 md:mt-8">
                 <div className="flex items-start gap-4">
@@ -64,8 +52,7 @@ const Hero = () => {
                     <BookOpen className="h-5 w-5 text-anondopath-blue" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">Interactive Quizzes</h3>
-                    <p className="text-gray-600 text-sm">Engaging quizzes that adapt to each student's learning pace</p>
+                    <h3 className="font-semibold text-lg">Interactive Quizzes</h3>
                   </div>
                 </div>
               </div>
@@ -77,8 +64,7 @@ const Hero = () => {
                     <Video className="h-5 w-5 text-anondopath-teal" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">Live Sessions</h3>
-                    <p className="text-gray-600 text-sm">Real-time learning with expert educators and peers</p>
+                    <h3 className="font-semibold text-lg">Live Sessions</h3>
                   </div>
                 </div>
               </div>
@@ -90,8 +76,7 @@ const Hero = () => {
                     <BarChart className="h-5 w-5 text-anondopath-blue" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">Progress Tracking</h3>
-                    <p className="text-gray-600 text-sm">Monitor learning journey with detailed analytics</p>
+                    <h3 className="font-semibold text-lg">Progress Tracking</h3>
                   </div>
                 </div>
               </div>
@@ -103,10 +88,21 @@ const Hero = () => {
                     <Lightbulb className="h-5 w-5 text-anondopath-teal" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">AI Recommendations</h3>
-                    <p className="text-gray-600 text-sm">Personalized learning paths based on individual needs</p>
+                    <h3 className="font-semibold text-lg">AI Recommendations</h3>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Student Image - Positioned in background with lower z-index */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 -bottom-10 -z-10 bg-gradient-to-b from-anondopath-blue/10 to-transparent rounded-full blur-xl"></div>
+                <img 
+                  src="/lovable-uploads/c7a21bf4-8511-4c59-aae7-14943856658e.png" 
+                  alt="Student using Anondopath" 
+                  className="h-auto max-h-[420px] object-contain mx-auto"
+                />
               </div>
             </div>
           </div>
