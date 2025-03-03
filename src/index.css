@@ -137,6 +137,14 @@
   .slide-up.in-view {
     @apply opacity-100 translate-y-0;
   }
+
+  .fade-in-section {
+    @apply opacity-0 transition-opacity duration-700;
+  }
+  
+  .fade-in-section.in-view {
+    @apply opacity-100;
+  }
   
   .staggered-fade-in > * {
     @apply opacity-0;
@@ -166,5 +174,30 @@
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Improved hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .hover-scale {
+    @apply transition-all duration-300 hover:scale-105;
+  }
+
+  /* Focus states for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-anondopath-teal focus:ring-opacity-50;
+  }
+
+  /* Enhanced mobile-responsive adjustments */
+  @media (max-width: 640px) {
+    .section-padding {
+      @apply py-12 px-4;
+    }
+    
+    h1, h2, h3 {
+      @apply tracking-tight;
+    }
   }
 }

@@ -22,10 +22,13 @@ const Index = () => {
           }
         });
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px" 
+      }
     );
 
-    const elements = document.querySelectorAll('.slide-up');
+    const elements = document.querySelectorAll('.slide-up, .fade-in-section');
     elements.forEach((el) => observer.observe(el));
 
     return () => {
@@ -34,17 +37,31 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden">
+    <div className="min-h-screen w-full overflow-x-hidden bg-white">
       <Header />
-      <main className="pt-16">
+      <main>
         <Hero />
-        <ImageSlider />
-        <HowItWorks />
-        <PartnersSlider />
-        <FeatureGrid />
-        <TestimonialsSlider />
-        <NewsletterSignup />
-        <BookDemo />
+        <div className="slide-up">
+          <ImageSlider />
+        </div>
+        <div className="slide-up">
+          <HowItWorks />
+        </div>
+        <div className="slide-up">
+          <PartnersSlider />
+        </div>
+        <div className="slide-up">
+          <FeatureGrid />
+        </div>
+        <div className="slide-up">
+          <TestimonialsSlider />
+        </div>
+        <div className="slide-up">
+          <NewsletterSignup />
+        </div>
+        <div className="slide-up">
+          <BookDemo />
+        </div>
       </main>
       <Footer />
     </div>

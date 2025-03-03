@@ -44,6 +44,7 @@ const Button = ({
         variantClasses[variant],
         sizeClasses[size],
         animateClass,
+        "transform transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]",
         className
       )}
       {...props}

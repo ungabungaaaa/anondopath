@@ -62,7 +62,7 @@ const ImageSlider = () => {
   };
 
   return (
-    <section id="features" className="section-padding bg-white relative overflow-hidden">
+    <section id="features" className="section-padding py-20 bg-white relative overflow-hidden">
       <div className="container mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
           <span className="blue-gradient-text">MVP</span> Feature Highlights
@@ -77,7 +77,7 @@ const ImageSlider = () => {
           <div className="w-full lg:w-1/2 relative">
             <div className="relative mx-auto w-full max-w-md aspect-[4/3]">
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-anondopath-blue/10 to-anondopath-teal/10 blur-md transform -rotate-3"></div>
-              <div className="relative overflow-hidden rounded-xl glass shadow-xl">
+              <div className="relative overflow-hidden rounded-xl glass shadow-xl hover:shadow-2xl transition-all duration-300">
                 <div className="w-full h-full overflow-hidden">
                   {slides.map((slide, index) => (
                     <div
@@ -89,7 +89,7 @@ const ImageSlider = () => {
                       <img
                         src={slide.image}
                         alt={slide.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
                     </div>
                   ))}
@@ -99,14 +99,14 @@ const ImageSlider = () => {
                 <div className="absolute bottom-4 right-4 flex space-x-2 z-20">
                   <button 
                     onClick={prevSlide}
-                    className="bg-white/30 backdrop-blur-md p-2 rounded-full hover:bg-white/50 transition-colors"
+                    className="bg-white/30 backdrop-blur-md p-2 rounded-full hover:bg-white/50 transition-colors transform hover:scale-110 active:scale-95"
                     aria-label="Previous slide"
                   >
                     <ChevronLeft className="h-5 w-5 text-white" />
                   </button>
                   <button
                     onClick={nextSlide}
-                    className="bg-white/30 backdrop-blur-md p-2 rounded-full hover:bg-white/50 transition-colors"
+                    className="bg-white/30 backdrop-blur-md p-2 rounded-full hover:bg-white/50 transition-colors transform hover:scale-110 active:scale-95"
                     aria-label="Next slide"
                   >
                     <ChevronRight className="h-5 w-5 text-white" />
@@ -119,10 +119,10 @@ const ImageSlider = () => {
                     <button
                       key={index}
                       onClick={() => goToSlide(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
+                      className={`h-2 rounded-full transition-all duration-300 ${
                         index === currentSlide 
                           ? 'bg-white w-6' 
-                          : 'bg-white/50'
+                          : 'bg-white/50 w-2 hover:bg-white/70'
                       }`}
                       aria-label={`Go to slide ${index + 1}`}
                     />
@@ -147,7 +147,7 @@ const ImageSlider = () => {
                 <h3 className="text-2xl font-bold mb-4 blue-gradient-text">
                   {slide.title}
                 </h3>
-                <p className="text-gray-600 mb-6 text-lg">
+                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
                   {slide.description}
                 </p>
                 <Button variant="primary" animate>
