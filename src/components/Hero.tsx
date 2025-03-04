@@ -1,17 +1,14 @@
-
 import React from 'react';
 import Button from './Button';
 import { ArrowRight, Download, BookOpen, Video, BarChart, Lightbulb } from 'lucide-react';
-
 const Hero = () => {
-  return (
-    <section className="relative pt-36 pb-16 bg-gradient-to-br from-white via-blue-50 to-white overflow-hidden">
+  return <section className="relative pt-36 pb-16 bg-gradient-to-br from-white via-blue-50 to-white overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="absolute top-[10%] right-[5%] w-64 h-64 rounded-full bg-anondopath-teal/5 animate-pulse-slow"></div>
         <div className="absolute bottom-[15%] left-[10%] w-96 h-96 rounded-full bg-anondopath-blue/5 animate-pulse-slow" style={{
-          animationDelay: '1s'
-        }}></div>
+        animationDelay: '1s'
+      }}></div>
         <div className="absolute top-[30%] left-[15%] w-32 h-32 rounded-full bg-anondopath-teal/10 animate-float"></div>
       </div>
 
@@ -47,18 +44,16 @@ const Hero = () => {
             <div className="absolute inset-0 z-10 flex items-center justify-center">
               <div className="relative">
                 <div className="absolute inset-0 -bottom-6 -z-10 bg-gradient-to-b from-anondopath-blue/10 to-transparent rounded-full blur-lg"></div>
-                <img 
-                  src="/lovable-uploads/c7a21bf4-8511-4c59-aae7-14943856658e.png" 
-                  alt="Student using Anondopath" 
-                  className="h-auto max-h-[400px] object-contain mx-auto rounded-2xl shadow-md"
-                />
+                <img src="/lovable-uploads/c7a21bf4-8511-4c59-aae7-14943856658e.png" alt="Student using Anondopath" className="h-auto max-h-[500px] mx-auto rounded-2xl shadow-md object-contain" />
               </div>
             </div>
 
             {/* Floating Feature Cards - Positioned in foreground */}
             <div className="relative z-20 grid grid-cols-2 gap-3 md:gap-4">
               {/* Interactive Quizzes - Adjusted to have consistent height */}
-              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-3 mt-0 md:mt-12 animate-fade-in h-[42px]" style={{ animationDelay: '0.1s' }}>
+              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-3 mt-0 md:mt-12 animate-fade-in h-[42px]" style={{
+              animationDelay: '0.1s'
+            }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-blue/10 p-1.5 rounded-full">
                     <BookOpen className="h-4 w-4 text-anondopath-blue" />
@@ -68,7 +63,9 @@ const Hero = () => {
               </div>
 
               {/* Live Sessions - Maintain the same height */}
-              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-3 mt-0 md:mt-36 animate-fade-in h-[42px]" style={{ animationDelay: '0.2s' }}>
+              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-3 mt-0 md:mt-36 animate-fade-in h-[42px]" style={{
+              animationDelay: '0.2s'
+            }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-teal/10 p-1.5 rounded-full">
                     <Video className="h-4 w-4 text-anondopath-teal" />
@@ -78,7 +75,9 @@ const Hero = () => {
               </div>
 
               {/* Progress Tracking - Adjusted to match height */}
-              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-8 mt-0 md:mt-20 animate-fade-in h-[42px]" style={{ animationDelay: '0.3s' }}>
+              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-8 mt-0 md:mt-20 animate-fade-in h-[42px]" style={{
+              animationDelay: '0.3s'
+            }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-blue/10 p-1.5 rounded-full">
                     <BarChart className="h-4 w-4 text-anondopath-blue" />
@@ -88,7 +87,9 @@ const Hero = () => {
               </div>
 
               {/* AI Recommendations - Maintain the same height */}
-              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-5 mt-0 md:mt-44 animate-fade-in h-[42px]" style={{ animationDelay: '0.4s' }}>
+              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-5 mt-0 md:mt-44 animate-fade-in h-[42px]" style={{
+              animationDelay: '0.4s'
+            }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-teal/10 p-1.5 rounded-full">
                     <Lightbulb className="h-4 w-4 text-anondopath-teal" />
@@ -109,8 +110,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
