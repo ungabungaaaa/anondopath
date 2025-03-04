@@ -63,9 +63,9 @@ const Hero = () => {
               </div>
 
               {/* Live Sessions - Maintain the same height */}
-              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-3 mt-0 md:mt-36 animate-fade-in h-[42px]" style={{
+              <div style={{
               animationDelay: '0.2s'
-            }}>
+            }} className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-3 mt-0 md:mt-36 animate-fade-in h-[42px] py-[5px]">
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-teal/10 p-1.5 rounded-full">
                     <Video className="h-4 w-4 text-anondopath-teal" />
