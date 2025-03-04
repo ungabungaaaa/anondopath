@@ -1,17 +1,14 @@
-
 import React from 'react';
 import Button from './Button';
 import { ArrowRight, Download, BookOpen, Video, BarChart, Lightbulb } from 'lucide-react';
-
 const Hero = () => {
-  return (
-    <section className="relative pt-28 pb-16 bg-gradient-to-br from-white via-blue-50 to-white overflow-hidden">
+  return <section className="relative pt-28 pb-16 bg-gradient-to-br from-white via-blue-50 to-white overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="absolute top-[10%] right-[5%] w-64 h-64 rounded-full bg-anondopath-teal/5 animate-pulse-slow"></div>
         <div className="absolute bottom-[15%] left-[10%] w-96 h-96 rounded-full bg-anondopath-blue/5 animate-pulse-slow" style={{
-          animationDelay: '1s'
-        }}></div>
+        animationDelay: '1s'
+      }}></div>
         <div className="absolute top-[30%] left-[15%] w-32 h-32 rounded-full bg-anondopath-teal/10 animate-float"></div>
       </div>
 
@@ -98,11 +95,7 @@ const Hero = () => {
             <div className="absolute inset-0 z-10 flex items-center justify-center">
               <div className="relative">
                 <div className="absolute inset-0 -bottom-10 -z-10 bg-gradient-to-b from-anondopath-blue/10 to-transparent rounded-full blur-xl"></div>
-                <img 
-                  src="/lovable-uploads/c7a21bf4-8511-4c59-aae7-14943856658e.png" 
-                  alt="Student using Anondopath" 
-                  className="h-auto max-h-[420px] object-contain mx-auto"
-                />
+                <img src="/lovable-uploads/c7a21bf4-8511-4c59-aae7-14943856658e.png" alt="Student using Anondopath" className="h-auto max-h-[420px] object-contain mx-auto" />
               </div>
             </div>
           </div>
@@ -112,15 +105,13 @@ const Hero = () => {
         <div className="w-full pt-16 mt-6">
           <p className="text-sm text-gray-500 mb-4 font-medium text-center">Trusted by educators worldwide</p>
           <div className="flex flex-wrap gap-8 items-center justify-center">
-            <img src="/lovable-uploads/9d825685-acd1-4773-be63-4d20d963ea51.png" alt="Partner logo" className="h-10 object-contain" />
+            
             <img src="/lovable-uploads/b75aad07-8762-4182-bbde-f65c1ce89f14.png" alt="Partner logo" className="h-10 object-contain" />
-            <img src="/lovable-uploads/33133015-bac0-40f3-80f6-932c44694ce8.png" alt="Partner logo" className="h-10 object-contain" />
+            
             <img src="/lovable-uploads/9ea336e8-3047-45ea-b900-035bd722b745.png" alt="Partner logo" className="h-10 object-contain" />
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
