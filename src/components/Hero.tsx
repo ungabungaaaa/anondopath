@@ -1,6 +1,8 @@
+
 import React from 'react';
 import Button from './Button';
 import { ArrowRight, Download, BookOpen, Video, BarChart, Lightbulb } from 'lucide-react';
+
 const Hero = () => {
   return <section className="relative pt-36 pb-16 bg-gradient-to-br from-white via-blue-50 to-white overflow-hidden">
       {/* Background Elements */}
@@ -50,10 +52,10 @@ const Hero = () => {
 
             {/* Floating Feature Cards - Positioned in foreground */}
             <div className="relative z-20 grid grid-cols-2 gap-3 md:gap-4">
-              {/* Interactive Quizzes - Adjusted to have consistent height */}
-              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-3 mt-0 md:mt-12 animate-fade-in h-[42px]" style={{
-              animationDelay: '0.1s'
-            }}>
+              {/* Interactive Quizzes */}
+              <div className="glass p-3 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-3 mt-0 md:mt-12 animate-fade-in" style={{
+                animationDelay: '0.1s'
+              }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-blue/10 p-1.5 rounded-full">
                     <BookOpen className="h-4 w-4 text-anondopath-blue" />
@@ -62,10 +64,10 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* Live Sessions - Maintain the same height */}
-              <div style={{
-              animationDelay: '0.2s'
-            }} className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-3 mt-0 md:mt-36 animate-fade-in h-[42px] py-[5px]">
+              {/* Live Sessions */}
+              <div className="glass p-3 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-3 mt-0 md:mt-36 animate-fade-in" style={{
+                animationDelay: '0.2s'
+              }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-teal/10 p-1.5 rounded-full">
                     <Video className="h-4 w-4 text-anondopath-teal" />
@@ -74,10 +76,10 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* Progress Tracking - Adjusted to match height */}
-              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-8 mt-0 md:mt-20 animate-fade-in h-[42px]" style={{
-              animationDelay: '0.3s'
-            }}>
+              {/* Progress Tracking */}
+              <div className="glass p-3 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-8 mt-0 md:mt-20 animate-fade-in" style={{
+                animationDelay: '0.3s'
+              }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-blue/10 p-1.5 rounded-full">
                     <BarChart className="h-4 w-4 text-anondopath-blue" />
@@ -86,10 +88,10 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* AI Recommendations - Maintain the same height */}
-              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-5 mt-0 md:mt-44 animate-fade-in h-[42px]" style={{
-              animationDelay: '0.4s'
-            }}>
+              {/* AI Recommendations */}
+              <div className="glass p-3 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-5 mt-0 md:mt-44 animate-fade-in" style={{
+                animationDelay: '0.4s'
+              }}>
                 <div className="flex items-center gap-3">
                   <div className="bg-anondopath-teal/10 p-1.5 rounded-full">
                     <Lightbulb className="h-4 w-4 text-anondopath-teal" />
@@ -112,4 +114,5 @@ const Hero = () => {
       </div>
     </section>;
 };
+
 export default Hero;
