@@ -57,43 +57,43 @@ const Hero = () => {
 
             {/* Floating Feature Cards - Positioned in foreground */}
             <div className="relative z-20 grid grid-cols-2 gap-3 md:gap-4">
-              {/* Interactive Quizzes */}
-              <div className="glass p-3 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-3 mt-0 md:mt-12 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              {/* Interactive Quizzes - Adjusted to have consistent height */}
+              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-3 mt-0 md:mt-12 animate-fade-in h-[42px]" style={{ animationDelay: '0.1s' }}>
                 <div className="flex items-center gap-3">
-                  <div className="bg-anondopath-blue/10 p-2 rounded-full">
+                  <div className="bg-anondopath-blue/10 p-1.5 rounded-full">
                     <BookOpen className="h-4 w-4 text-anondopath-blue" />
                   </div>
-                  <h3 className="font-semibold text-sm md:text-base">Interactive Quizzes</h3>
+                  <h3 className="font-semibold text-sm">Interactive Quizzes</h3>
                 </div>
               </div>
 
-              {/* Live Sessions */}
-              <div className="glass p-3 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-3 mt-0 md:mt-36 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              {/* Live Sessions - Maintain the same height */}
+              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-3 mt-0 md:mt-36 animate-fade-in h-[42px]" style={{ animationDelay: '0.2s' }}>
                 <div className="flex items-center gap-3">
-                  <div className="bg-anondopath-teal/10 p-2 rounded-full">
+                  <div className="bg-anondopath-teal/10 p-1.5 rounded-full">
                     <Video className="h-4 w-4 text-anondopath-teal" />
                   </div>
-                  <h3 className="font-semibold text-sm md:text-base">Live Sessions</h3>
+                  <h3 className="font-semibold text-sm">Live Sessions</h3>
                 </div>
               </div>
 
-              {/* Progress Tracking */}
-              <div className="glass p-3 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-8 mt-0 md:mt-20 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              {/* Progress Tracking - Adjusted to match height */}
+              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md ml-0 md:ml-8 mt-0 md:mt-20 animate-fade-in h-[42px]" style={{ animationDelay: '0.3s' }}>
                 <div className="flex items-center gap-3">
-                  <div className="bg-anondopath-blue/10 p-2 rounded-full">
+                  <div className="bg-anondopath-blue/10 p-1.5 rounded-full">
                     <BarChart className="h-4 w-4 text-anondopath-blue" />
                   </div>
-                  <h3 className="font-semibold text-sm md:text-base">Progress Tracking</h3>
+                  <h3 className="font-semibold text-sm">Progress Tracking</h3>
                 </div>
               </div>
 
-              {/* AI Recommendations */}
-              <div className="glass p-3 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-5 mt-0 md:mt-44 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              {/* AI Recommendations - Maintain the same height */}
+              <div className="glass p-2.5 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/95 backdrop-blur-md mr-0 md:mr-5 mt-0 md:mt-44 animate-fade-in h-[42px]" style={{ animationDelay: '0.4s' }}>
                 <div className="flex items-center gap-3">
-                  <div className="bg-anondopath-teal/10 p-2 rounded-full">
+                  <div className="bg-anondopath-teal/10 p-1.5 rounded-full">
                     <Lightbulb className="h-4 w-4 text-anondopath-teal" />
                   </div>
-                  <h3 className="font-semibold text-sm md:text-base">AI Recommendations</h3>
+                  <h3 className="font-semibold text-sm">AI Recommendations</h3>
                 </div>
               </div>
             </div>
