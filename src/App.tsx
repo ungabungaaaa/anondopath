@@ -22,8 +22,6 @@ import AdminLayout from "./components/admin/AdminLayout";
 import AdminPostsList from "./pages/admin/PostsList";
 import PostEditor from "./pages/admin/PostEditor";
 
-const queryClient = new QueryClient();
-
 // ScrollToTop component to scroll to top when navigating between pages
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -65,18 +63,23 @@ const AppRoutes = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AdminAuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AdminAuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Create QueryClient inside the component
+  const queryClient = new QueryClient();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AdminAuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AdminAuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

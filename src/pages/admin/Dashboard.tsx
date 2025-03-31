@@ -9,6 +9,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { BlogPost, BlogCategory, BlogTag, BlogComment } from '@/types/blog';
 import { FileText, FilePlus, MessageSquare, Tag, CheckCircle, XCircle, FolderOpen } from 'lucide-react';
 
+interface PostTimeData {
+  date: string;
+  published: number;
+  draft: number;
+}
+
 const Dashboard = () => {
   const { isAuthenticated } = useAdminAuth();
   const navigate = useNavigate();
@@ -23,7 +29,7 @@ const Dashboard = () => {
     pendingComments: 0
   });
   
-  const [postsOverTime, setPostsOverTime] = useState<{ date: string, count: number }[]>([]);
+  const [postsOverTime, setPostsOverTime] = useState<PostTimeData[]>([]);
   const [categoryDistribution, setCategoryDistribution] = useState<{ name: string, value: number }[]>([]);
   const [tagDistribution, setTagDistribution] = useState<{ name: string, value: number }[]>([]);
   
@@ -103,7 +109,7 @@ const Dashboard = () => {
           });
         }
         
-        const postsTimeData: { date: string, published: number, draft: number }[] = 
+        const postsTimeData: PostTimeData[] = 
           Array.from(dateMap.entries())
             .map(([date, counts]: [string, any]) => ({ 
               date, 
@@ -111,6 +117,8 @@ const Dashboard = () => {
               draft: counts.draft 
             }))
             .sort((a, b) => a.date.localeCompare(b.date));
+        
+        setPostsOverTime(postsTimeData);
 
         // Fetch category distribution
         const { data: categoriesData } = await supabase
@@ -162,7 +170,6 @@ const Dashboard = () => {
           pendingComments: pendingComments || 0
         });
         
-        setPostsOverTime(postsTimeData);
         setCategoryDistribution(categoryData);
         setTagDistribution(tagData);
       } catch (error) {
