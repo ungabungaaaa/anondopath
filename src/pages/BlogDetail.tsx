@@ -1,10 +1,9 @@
-
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Button from '@/components/Button';
-import { ArrowLeft, Calendar, Clock, User, Tag, Share2, Facebook, Twitter, Linkedin, Mail, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, User, Tag, Share2, Facebook, Twitter, Linkedin, Mail, ChevronRight, ArrowRight } from 'lucide-react';
 
 const BlogDetail = () => {
   const { id } = useParams<{ id: string }>();
