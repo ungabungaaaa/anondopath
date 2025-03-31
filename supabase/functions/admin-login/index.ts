@@ -45,6 +45,7 @@ serve(async (req) => {
       .single();
     
     if (error || !user) {
+      console.log('User not found:', error);
       return new Response(
         JSON.stringify({ error: 'Invalid username or password' }),
         { 
@@ -54,38 +55,13 @@ serve(async (req) => {
       );
     }
     
-    // Verify password - this would use a secure password verification mechanism in production
-    // For now, we'll just check if this is our demo user
+    console.log("Found user:", user);
+    
+    // For our demo, we'll just check if the username and password matches our demo user
+    // In a real app, we would compare hashed passwords
     if (username === 'Ungabunga' && password === 'anondopath.2121') {
-      // This is a simplified version for the demo - in a real app, you'd use proper password verification
-      
-      // Create a session for the admin user
-      const { data: session, error: sessionError } = await supabaseAdmin.auth.admin.createUser({
-        email: user.email || `${username}@example.com`,
-        password: password + '_secure_suffix', // Generate a secure password for Supabase auth
-        email_confirm: true,
-        user_metadata: {
-          full_name: user.full_name,
-          is_admin: user.is_admin
-        }
-      });
-      
-      if (sessionError) {
-        console.error('Session creation error:', sessionError);
-        return new Response(
-          JSON.stringify({ error: 'Authentication failed' }),
-          { 
-            status: 401, 
-            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-          }
-        );
-      }
-      
       return new Response(
-        JSON.stringify({ 
-          user,
-          session
-        }),
+        JSON.stringify({ user }),
         { 
           status: 200, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 

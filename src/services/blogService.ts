@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   BlogPost, 
@@ -12,25 +11,23 @@ import {
 // Admin Authentication
 export const loginAdmin = async (credentials: AdminLoginCredentials): Promise<BlogUser | null> => {
   try {
-    const { data, error } = await supabase
-      .from('blog_users')
-      .select('*')
-      .eq('username', credentials.username)
-      .single();
+    // Call our admin-login edge function instead of querying database directly
+    const { data, error } = await supabase.functions.invoke('admin-login', {
+      body: credentials
+    });
+
+    if (error) {
+      console.error("Edge function error:", error);
+      throw new Error(error.message || 'Failed to authenticate');
+    }
     
-    if (error || !data) {
+    if (!data || !data.user) {
       throw new Error('Invalid username or password');
     }
-
-    // Since we're storing password hashes in the database and can't verify them directly in the frontend,
-    // we'll use a Supabase function for this in a real application. For now, this is a simplified version.
-    if (data.is_admin) {
-      // Store admin session in localStorage for persistence
-      localStorage.setItem('blogAdminUser', JSON.stringify(data));
-      return data;
-    }
     
-    throw new Error('Not authorized as admin');
+    // Store admin session in localStorage for persistence
+    localStorage.setItem('blogAdminUser', JSON.stringify(data.user));
+    return data.user;
   } catch (error: any) {
     console.error('Login error:', error.message);
     throw error;
