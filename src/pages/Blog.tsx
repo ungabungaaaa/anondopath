@@ -1,13 +1,35 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Search, Clock, ArrowRight, Tag, User } from 'lucide-react';
 import Button from '@/components/Button';
+import { getPosts, getCategories, getTags } from '@/services/blogService';
+import { BlogPost, BlogCategory, BlogTag } from '@/types/blog';
+import { Link } from 'react-router-dom';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useQuery } from '@tanstack/react-query';
 
 const Blog = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+  const searchQuery = searchParams.get('search') || '';
+  const activeCategory = searchParams.get('category') || 'All';
+  const activeTag = searchParams.get('tag') || '';
+  const postsPerPage = 9;
+
+  // Set up states for UI elements
+  const [searchInput, setSearchInput] = useState(searchQuery);
   
   // Add intersection observer for scroll animations
   useEffect(() => {
@@ -30,116 +52,111 @@ const Blog = () => {
     };
   }, []);
 
-  const categories = ['All', 'EdTech', 'Teaching Tips', 'Case Studies', 'Product Updates', 'Digital Learning'];
+  // Query for posts
+  const { data: postsData, isLoading: isLoadingPosts } = useQuery({
+    queryKey: ['posts', currentPage, activeCategory, activeTag, searchQuery],
+    queryFn: () => getPosts(currentPage, postsPerPage, 
+      activeCategory !== 'All' ? activeCategory : undefined, 
+      activeTag || undefined,
+      searchQuery || undefined
+    ),
+  });
 
-  const featuredPosts = [
-    {
-      id: 1,
-      title: "5 Ways Virtual Labs Are Changing Science Education",
-      excerpt: "Discover how virtual laboratories are transforming the way students learn and understand scientific concepts in today's digital classrooms.",
-      image: "/placeholder.svg",
-      category: "EdTech",
-      author: "Emily Chen",
-      date: "May 15, 2023",
-      readTime: "8 min read"
-    },
-    {
-      id: 2,
-      title: "The Future of Collaborative Learning in Virtual Environments",
-      excerpt: "Explore how digital collaboration tools are breaking down classroom walls and creating new opportunities for student engagement and peer learning.",
-      image: "/placeholder.svg",
-      category: "Digital Learning",
-      author: "Michael Rodriguez",
-      date: "June 3, 2023",
-      readTime: "6 min read"
-    },
-    {
-      id: 3,
-      title: "How One School District Improved STEM Scores with Anondopath",
-      excerpt: "A detailed case study on how Westridge School District implemented our platform and saw a 35% improvement in science test scores within one semester.",
-      image: "/placeholder.svg",
-      category: "Case Studies",
-      author: "Sarah Johnson",
-      date: "April 22, 2023",
-      readTime: "10 min read"
-    }
-  ];
+  // Query for categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  const recentPosts = [
-    {
-      id: 4,
-      title: "10 Interactive Activities to Engage Middle School Science Students",
-      excerpt: "Practical activities and lesson plans to get your middle school students excited about science using Anondopath's interactive simulations.",
-      image: "/placeholder.svg",
-      category: "Teaching Tips",
-      author: "David Wilson",
-      date: "July 10, 2023",
-      readTime: "7 min read"
-    },
-    {
-      id: 5,
-      title: "Understanding the Impact of Visual Learning on Knowledge Retention",
-      excerpt: "Research-backed insights into how visual and interactive learning experiences help students better understand and remember complex concepts.",
-      image: "/placeholder.svg",
-      category: "EdTech",
-      author: "Lisa Patel",
-      date: "July 5, 2023",
-      readTime: "9 min read"
-    },
-    {
-      id: 6,
-      title: "New Feature Release: Collaborative Whiteboarding Tools",
-      excerpt: "Introducing our newest feature that allows teachers and students to collaborate in real-time on virtual whiteboards within simulations.",
-      image: "/placeholder.svg",
-      category: "Product Updates",
-      author: "Anondopath Team",
-      date: "June 28, 2023",
-      readTime: "4 min read"
-    },
-    {
-      id: 7,
-      title: "Bridging the Digital Divide: Making EdTech Accessible to All",
-      excerpt: "How Anondopath is working with underserved communities to ensure all students have access to quality digital learning experiences.",
-      image: "/placeholder.svg",
-      category: "Digital Learning",
-      author: "James Carter",
-      date: "June 22, 2023",
-      readTime: "8 min read"
-    },
-    {
-      id: 8,
-      title: "Tips for Remote Teaching with Digital Simulations",
-      excerpt: "Practical advice for educators on how to effectively implement virtual labs and simulations in remote and hybrid learning environments.",
-      image: "/placeholder.svg",
-      category: "Teaching Tips",
-      author: "Emma Baker",
-      date: "June 15, 2023",
-      readTime: "6 min read"
-    },
-    {
-      id: 9,
-      title: "How Anondopath Helped This University Revolutionize Engineering Education",
-      excerpt: "Case study on how a leading engineering program implemented virtual simulations to prepare students for real-world challenges.",
-      image: "/placeholder.svg",
-      category: "Case Studies",
-      author: "Robert Chen",
-      date: "June 8, 2023",
-      readTime: "11 min read"
-    }
-  ];
+  // Query for tags
+  const { data: tags = [] } = useQuery({
+    queryKey: ['tags'],
+    queryFn: getTags,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  // Filter posts based on search query and active category
-  const filterPosts = (posts) => {
-    return posts.filter(post => {
-      const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = activeCategory === 'All' || post.category === activeCategory;
-      return matchesSearch && matchesCategory;
-    });
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Update URL params
+    const params = new URLSearchParams(searchParams);
+    params.set('page', '1'); // Reset to first page on new search
+    params.set('search', searchInput);
+    setSearchParams(params);
   };
 
-  const filteredFeaturedPosts = filterPosts(featuredPosts);
-  const filteredRecentPosts = filterPosts(recentPosts);
+  const handleCategoryChange = (category: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', '1'); // Reset to first page on category change
+    if (category === 'All') {
+      params.delete('category');
+    } else {
+      params.set('category', category);
+    }
+    setSearchParams(params);
+  };
+
+  const handleTagClick = (tag: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', '1'); // Reset to first page on tag change
+    params.set('tag', tag);
+    setSearchParams(params);
+  };
+
+  const clearFilters = () => {
+    setSearchInput('');
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    setSearchParams(params);
+  };
+
+  // Get the featured and regular posts
+  const featuredPosts = postsData?.posts.slice(0, 3) || [];
+  const regularPosts = postsData?.posts.slice(3) || [];
+
+  // Calculate total pages
+  const totalPages = postsData?.count ? Math.ceil(postsData.count / postsPerPage) : 0;
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always include first page
+      pages.push(1);
+      
+      // Add middle pages
+      const leftBound = Math.max(2, currentPage - 1);
+      const rightBound = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Add ellipsis for left side if needed
+      if (leftBound > 2) {
+        pages.push(-1); // -1 will render as ellipsis
+      }
+      
+      // Add visible numbered pages
+      for (let i = leftBound; i <= rightBound; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis for right side if needed
+      if (rightBound < totalPages - 1) {
+        pages.push(-2); // -2 will render as ellipsis
+      }
+      
+      // Always include last page
+      pages.push(totalPages);
+    }
+    
+    return pages;
+  };
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
@@ -161,18 +178,20 @@ const Blog = () => {
               </p>
               
               <div className="mt-8 max-w-xl mx-auto">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search articles..."
-                    className="w-full px-5 py-3 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-anondopath-teal/50 focus:border-anondopath-teal"
-                  />
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    <Search className="h-5 w-5" />
+                <form onSubmit={handleSearch}>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      placeholder="Search articles..."
+                      className="w-full px-5 py-3 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-anondopath-teal/50 focus:border-anondopath-teal"
+                    />
+                    <button type="submit" className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <Search className="h-5 w-5" />
+                    </button>
                   </div>
-                </div>
+                </form>
               </div>
             </div>
           </div>
@@ -182,31 +201,76 @@ const Blog = () => {
         <section className="py-8 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4 md:px-8">
             <div className="flex flex-wrap justify-center gap-3">
-              {categories.map((category, index) => (
+              <button
+                onClick={() => handleCategoryChange('All')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  activeCategory === 'All'
+                    ? 'bg-anondopath-teal text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                All
+              </button>
+              {categories.map((category) => (
                 <button
-                  key={index}
-                  onClick={() => setActiveCategory(category)}
+                  key={category.id}
+                  onClick={() => handleCategoryChange(category.slug)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    activeCategory === category
+                    activeCategory === category.slug
                       ? 'bg-anondopath-teal text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {category}
+                  {category.name}
                 </button>
               ))}
             </div>
+            
+            {/* Active filters display */}
+            {(searchQuery || activeTag) && (
+              <div className="flex flex-wrap items-center justify-center mt-4 gap-2">
+                <span className="text-sm text-gray-500">Active filters:</span>
+                {searchQuery && (
+                  <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs flex items-center">
+                    Search: {searchQuery}
+                  </div>
+                )}
+                {activeTag && (
+                  <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs flex items-center">
+                    Tag: {activeTag}
+                  </div>
+                )}
+                <button 
+                  onClick={clearFilters}
+                  className="text-xs text-red-600 hover:text-red-800 ml-2"
+                >
+                  Clear filters
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
+        {/* Loading State */}
+        {isLoadingPosts && (
+          <section className="py-16 bg-white">
+            <div className="container mx-auto px-4 md:px-8 text-center">
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-anondopath-teal"></div>
+              </div>
+              <p className="mt-4 text-gray-600">Loading posts...</p>
+            </div>
+          </section>
+        )}
+
         {/* Featured Posts */}
-        {filteredFeaturedPosts.length > 0 && (
+        {!isLoadingPosts && featuredPosts.length > 0 && (
           <section className="py-16 bg-white">
             <div className="container mx-auto px-4 md:px-8">
               <h2 className="text-2xl md:text-3xl font-bold mb-8 slide-up">Featured Articles</h2>
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {filteredFeaturedPosts.map((post, index) => (
+                {featuredPosts.map((post, index) => (
                   <div 
                     key={post.id} 
                     className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 transition-all duration-300 hover:shadow-md slide-up"
@@ -214,7 +278,7 @@ const Blog = () => {
                   >
                     <div className="h-48 overflow-hidden">
                       <img 
-                        src={post.image}
+                        src={post.featured_image || "/placeholder.svg"}
                         alt={post.title}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
@@ -223,11 +287,11 @@ const Blog = () => {
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <span className="px-3 py-1 bg-anondopath-blue/10 text-anondopath-blue text-xs rounded-full">
-                          {post.category}
+                          {post.category?.name || 'Uncategorized'}
                         </span>
                         <div className="flex items-center text-gray-500 text-sm">
                           <Clock className="h-4 w-4 mr-1" />
-                          <span>{post.readTime}</span>
+                          <span>{post.read_time || '5 min read'}</span>
                         </div>
                       </div>
                       
@@ -239,17 +303,19 @@ const Blog = () => {
                           <div className="w-8 h-8 rounded-full bg-gray-200 mr-2 flex items-center justify-center">
                             <User className="h-4 w-4 text-gray-500" />
                           </div>
-                          <span className="text-sm text-gray-600">{post.author}</span>
+                          <span className="text-sm text-gray-600">{post.author?.full_name || post.author?.username || 'Anonymous'}</span>
                         </div>
-                        <span className="text-sm text-gray-500">{post.date}</span>
+                        <span className="text-sm text-gray-500">
+                          {post.published_at ? new Date(post.published_at).toLocaleDateString() : new Date(post.created_at).toLocaleDateString()}
+                        </span>
                       </div>
                       
-                      <a 
-                        href={`#blog/${post.id}`} 
+                      <Link 
+                        to={`/blog/${post.slug}`} 
                         className="mt-4 text-anondopath-teal hover:text-anondopath-blue inline-flex items-center font-medium transition-colors"
                       >
                         Read More <ArrowRight className="ml-2 h-4 w-4" />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 ))}
@@ -259,13 +325,13 @@ const Blog = () => {
         )}
 
         {/* Recent Posts */}
-        {filteredRecentPosts.length > 0 && (
+        {!isLoadingPosts && regularPosts.length > 0 && (
           <section className="py-16 bg-gradient-to-r from-anondopath-blue/5 to-anondopath-teal/5">
             <div className="container mx-auto px-4 md:px-8">
               <h2 className="text-2xl md:text-3xl font-bold mb-8 slide-up">Recent Articles</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredRecentPosts.map((post, index) => (
+                {regularPosts.map((post, index) => (
                   <div 
                     key={post.id} 
                     className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 transition-all duration-300 hover:shadow-md slide-up"
@@ -273,7 +339,7 @@ const Blog = () => {
                   >
                     <div className="h-48 overflow-hidden">
                       <img 
-                        src={post.image}
+                        src={post.featured_image || "/placeholder.svg"}
                         alt={post.title}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
@@ -282,38 +348,88 @@ const Blog = () => {
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <span className="px-3 py-1 bg-anondopath-blue/10 text-anondopath-blue text-xs rounded-full">
-                          {post.category}
+                          {post.category?.name || 'Uncategorized'}
                         </span>
                         <div className="flex items-center text-gray-500 text-sm">
                           <Clock className="h-4 w-4 mr-1" />
-                          <span>{post.readTime}</span>
+                          <span>{post.read_time || '5 min read'}</span>
                         </div>
                       </div>
                       
                       <h3 className="text-xl font-bold mb-3">{post.title}</h3>
                       <p className="text-gray-600 mb-4 line-clamp-3">{post.excerpt}</p>
                       
-                      <a 
-                        href={`#blog/${post.id}`} 
+                      <Link 
+                        to={`/blog/${post.slug}`} 
                         className="mt-4 text-anondopath-teal hover:text-anondopath-blue inline-flex items-center font-medium transition-colors"
                       >
                         Read More <ArrowRight className="ml-2 h-4 w-4" />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 ))}
               </div>
               
-              {/* Load More Button */}
-              <div className="text-center mt-12">
-                <Button variant="outline">Load More Articles</Button>
-              </div>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-12">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => {
+                            if (currentPage > 1) {
+                              const params = new URLSearchParams(searchParams);
+                              params.set('page', (currentPage - 1).toString());
+                              setSearchParams(params);
+                            }
+                          }}
+                          className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {getPageNumbers().map((page, i) => (
+                        <PaginationItem key={i}>
+                          {page < 0 ? (
+                            <span className="px-4 py-2">...</span>
+                          ) : (
+                            <PaginationLink
+                              onClick={() => {
+                                const params = new URLSearchParams(searchParams);
+                                params.set('page', page.toString());
+                                setSearchParams(params);
+                              }}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          )}
+                        </PaginationItem>
+                      ))}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => {
+                            if (currentPage < totalPages) {
+                              const params = new URLSearchParams(searchParams);
+                              params.set('page', (currentPage + 1).toString());
+                              setSearchParams(params);
+                            }
+                          }}
+                          className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </div>
           </section>
         )}
 
         {/* Empty State (No results) */}
-        {filteredFeaturedPosts.length === 0 && filteredRecentPosts.length === 0 && (
+        {!isLoadingPosts && postsData?.posts.length === 0 && (
           <section className="py-24 bg-white">
             <div className="container mx-auto px-4 md:px-8 text-center">
               <div className="max-w-md mx-auto">
@@ -324,10 +440,7 @@ const Blog = () => {
                 </p>
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    setSearchQuery('');
-                    setActiveCategory('All');
-                  }}
+                  onClick={clearFilters}
                 >
                   View All Articles
                 </Button>
@@ -335,6 +448,28 @@ const Blog = () => {
             </div>
           </section>
         )}
+
+        {/* Tags Section */}
+        <section className="py-12 bg-white border-t border-gray-100">
+          <div className="container mx-auto px-4 md:px-8">
+            <h2 className="text-xl font-bold mb-6">Popular Tags</h2>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <button
+                  key={tag.id}
+                  onClick={() => handleTagClick(tag.slug)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                    activeTag === tag.slug
+                      ? 'bg-anondopath-blue text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* Newsletter Section */}
         <section className="py-16 md:py-24 bg-anondopath-blue">

@@ -1,85 +1,48 @@
-import React, { useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+
+import React, { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Button from '@/components/Button';
-import { ArrowLeft, Calendar, Clock, User, Tag, Share2, Facebook, Twitter, Linkedin, Mail, ChevronRight, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, User, Tag, Share2, Facebook, Twitter, Linkedin, Mail, ChevronRight, ArrowRight, MessageSquare } from 'lucide-react';
+import { getPostBySlug, getRelatedPosts, getApprovedComments, submitComment } from '@/services/blogService';
+import { BlogPost, BlogComment } from '@/types/blog';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/components/ui/use-toast';
 
 const BlogDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: slug } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [commentForm, setCommentForm] = useState({
+    author_name: '',
+    author_email: '',
+    content: ''
+  });
   
-  // Sample blog posts data (in a real app, you would fetch this from an API)
-  const blogPosts = [
-    {
-      id: "1",
-      title: "5 Ways Virtual Labs Are Changing Science Education",
-      content: `
-        <p class="mb-4">Science education has traditionally been limited by physical resources, lab equipment, and safety concerns. However, virtual labs are revolutionizing how students learn scientific concepts by providing immersive, interactive experiences that overcome these limitations.</p>
-        
-        <h2 class="text-2xl font-bold mt-8 mb-4">1. Enabling Access to Advanced Equipment</h2>
-        <p class="mb-4">Not every school can afford expensive lab equipment or have the space to store it. Virtual labs democratize access to advanced scientific tools, allowing students from any school to conduct experiments that would otherwise be out of reach.</p>
-        <p class="mb-6">Students can manipulate sophisticated equipment, observe reactions at molecular levels, and explore phenomena that would be impossible to witness in a traditional classroom setting.</p>
-        
-        <h2 class="text-2xl font-bold mt-8 mb-4">2. Eliminating Safety Concerns</h2>
-        <p class="mb-4">Safety is a primary concern in physical labs, especially when working with chemicals, high voltages, or biological materials. Virtual labs remove these risks entirely while still allowing students to learn about potentially dangerous procedures.</p>
-        <p class="mb-6">This safety net encourages experimentation and learning from mistakes without fear of harmful consequences, creating a more open and exploratory learning environment.</p>
-        
-        <h2 class="text-2xl font-bold mt-8 mb-4">3. Personalizing the Learning Experience</h2>
-        <p class="mb-4">Every student learns at their own pace and has unique interests. Virtual labs can adapt to individual learning styles, allowing students to repeat experiments, explore tangential concepts, or advance to more complex materials based on their progress.</p>
-        <p class="mb-6">Teachers can also customize lab experiences to align with specific curriculum goals or to address areas where certain students might need additional support.</p>
-        
-        <h2 class="text-2xl font-bold mt-8 mb-4">4. Visualizing the Abstract</h2>
-        <p class="mb-4">Many scientific concepts are abstract and difficult to visualize. Virtual labs excel at making the invisible visible – from the movement of electrons to the formation of geological features over millions of years.</p>
-        <p class="mb-6">By providing visual representations of complex processes, virtual labs help students build mental models that enhance their understanding and retention of difficult concepts.</p>
-        
-        <h2 class="text-2xl font-bold mt-8 mb-4">5. Collecting and Analyzing Real Data</h2>
-        <p class="mb-4">Modern virtual labs aren't just simulations – they can incorporate real-world data and authentic scientific methodologies. Students learn to collect, process, and interpret data just as professional scientists do.</p>
-        <p class="mb-6">This experience with data analysis develops critical thinking skills and prepares students for careers in STEM fields where data literacy is increasingly important.</p>
-        
-        <h2 class="text-2xl font-bold mt-8 mb-4">Conclusion</h2>
-        <p class="mb-4">As virtual lab technology continues to advance, we're seeing a transformation in science education that makes learning more accessible, engaging, and effective. These tools aren't replacing physical labs entirely – rather, they're complementing traditional approaches and expanding what's possible in the science classroom.</p>
-        <p class="mb-6">The future of science education will likely involve a balanced approach that leverages the strengths of both virtual and physical labs, providing students with the best possible preparation for scientific literacy and careers.</p>
-      `,
-      image: "/placeholder.svg",
-      category: "EdTech",
-      author: "Emily Chen",
-      date: "May 15, 2023",
-      readTime: "8 min read",
-      relatedPosts: ["2", "3", "5"]
-    },
-    {
-      id: "2",
-      title: "The Future of Collaborative Learning in Virtual Environments",
-      excerpt: "Explore how digital collaboration tools are breaking down classroom walls and creating new opportunities for student engagement and peer learning.",
-      image: "/placeholder.svg",
-      category: "Digital Learning",
-      author: "Michael Rodriguez",
-      date: "June 3, 2023",
-      readTime: "6 min read"
-    },
-    {
-      id: "3",
-      title: "How One School District Improved STEM Scores with Anondopath",
-      excerpt: "A detailed case study on how Westridge School District implemented our platform and saw a 35% improvement in science test scores within one semester.",
-      image: "/placeholder.svg",
-      category: "Case Studies",
-      author: "Sarah Johnson",
-      date: "April 22, 2023",
-      readTime: "10 min read"
-    },
-    {
-      id: "5",
-      title: "Understanding the Impact of Visual Learning on Knowledge Retention",
-      excerpt: "Research-backed insights into how visual and interactive learning experiences help students better understand and remember complex concepts.",
-      image: "/placeholder.svg",
-      category: "EdTech",
-      author: "Lisa Patel",
-      date: "July 5, 2023",
-      readTime: "9 min read"
-    }
-  ];
-  
-  const post = blogPosts.find(post => post.id === id);
+  // Query to fetch blog post by slug
+  const { data: post, isLoading, error } = useQuery({
+    queryKey: ['blogPost', slug],
+    queryFn: () => getPostBySlug(slug || ''),
+    enabled: !!slug,
+  });
+
+  // Query to fetch related posts
+  const { data: relatedPosts = [] } = useQuery({
+    queryKey: ['relatedPosts', post?.id, post?.category_id],
+    queryFn: () => getRelatedPosts(post?.id || '', post?.category_id || '', 3),
+    enabled: !!(post?.id && post?.category_id),
+  });
+
+  // Query to fetch approved comments
+  const { data: comments = [], refetch: refetchComments } = useQuery({
+    queryKey: ['comments', post?.id],
+    queryFn: () => getApprovedComments(post?.id || ''),
+    enabled: !!post?.id,
+  });
   
   // Add scroll animations
   useEffect(() => {
@@ -105,25 +68,108 @@ const BlogDetail = () => {
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [slug]);
+
+  const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCommentForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!post?.id) return;
+
+    setIsSubmitting(true);
+    try {
+      await submitComment({
+        post_id: post.id,
+        ...commentForm
+      });
+      toast({
+        title: "Comment submitted!",
+        description: "Your comment has been submitted and will be visible after approval.",
+      });
+      setCommentForm({
+        author_name: '',
+        author_email: '',
+        content: ''
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Comment submission failed",
+        description: "There was an error submitting your comment. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleShare = (platform: string) => {
+    const url = window.location.href;
+    const title = post?.title || 'Blog Post';
+    
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Check out this article: ${url}`)}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(shareUrl, '_blank');
+  };
   
-  if (!post) {
+  // Show loading state
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Blog post not found</h1>
-          <Link to="/blog">
-            <Button>Return to Blog</Button>
-          </Link>
-        </div>
+      <div className="min-h-screen">
+        <Header />
+        <main className="pt-24 pb-16">
+          <div className="container mx-auto px-4 md:px-8 flex justify-center items-center" style={{ minHeight: '50vh' }}>
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-anondopath-teal"></div>
+              <p className="mt-4 text-gray-600">Loading article...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
   
-  // Get related posts
-  const relatedPosts = post.relatedPosts
-    ? blogPosts.filter(relatedPost => post.relatedPosts?.includes(relatedPost.id))
-    : [];
+  // Handle errors or non-existent post
+  if (error || !post) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="pt-24 pb-16">
+          <div className="container mx-auto px-4 md:px-8 text-center py-16">
+            <h1 className="text-3xl font-bold mb-4">Blog post not found</h1>
+            <p className="text-gray-600 mb-6">The article you're looking for doesn't exist or has been removed.</p>
+            <Link to="/blog">
+              <Button>Return to Blog</Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen">
@@ -137,6 +183,17 @@ const BlogDetail = () => {
             <ChevronRight className="h-4 w-4" />
             <Link to="/blog" className="hover:text-anondopath-blue transition-colors">Blog</Link>
             <ChevronRight className="h-4 w-4" />
+            {post.category && (
+              <>
+                <Link 
+                  to={`/blog?category=${post.category.slug}`} 
+                  className="hover:text-anondopath-blue transition-colors"
+                >
+                  {post.category.name}
+                </Link>
+                <ChevronRight className="h-4 w-4" />
+              </>
+            )}
             <span className="text-gray-700 truncate">{post.title}</span>
           </div>
         </div>
@@ -153,12 +210,17 @@ const BlogDetail = () => {
         <section className="container mx-auto px-4 md:px-8 mb-12">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center space-x-4 mb-4 slide-up">
-              <span className="px-3 py-1 bg-anondopath-blue/10 text-anondopath-blue text-xs rounded-full">
-                {post.category}
-              </span>
+              {post.category && (
+                <Link 
+                  to={`/blog?category=${post.category.slug}`} 
+                  className="px-3 py-1 bg-anondopath-blue/10 text-anondopath-blue text-xs rounded-full hover:bg-anondopath-blue/20 transition-colors"
+                >
+                  {post.category.name}
+                </Link>
+              )}
               <div className="flex items-center text-gray-500 text-sm">
                 <Clock className="h-4 w-4 mr-1" />
-                <span>{post.readTime}</span>
+                <span>{post.read_time || '5 min read'}</span>
               </div>
             </div>
             
@@ -172,10 +234,23 @@ const BlogDetail = () => {
                   <User className="h-5 w-5 text-gray-500" />
                 </div>
                 <div>
-                  <p className="font-medium">{post.author}</p>
+                  <p className="font-medium">{post.author?.full_name || post.author?.username || 'Anonymous'}</p>
                   <div className="flex items-center text-sm text-gray-500">
                     <Calendar className="h-4 w-4 mr-1" />
-                    <span>{post.date}</span>
+                    <span>
+                      {post.published_at 
+                        ? new Date(post.published_at).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          }) 
+                        : new Date(post.created_at).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })
+                      }
+                    </span>
                   </div>
                 </div>
               </div>
@@ -187,7 +262,7 @@ const BlogDetail = () => {
         <section className="container mx-auto px-4 md:px-8 mb-12">
           <div className="max-w-5xl mx-auto rounded-xl overflow-hidden shadow-lg slide-up" style={{ animationDelay: '0.3s' }}>
             <img 
-              src={post.image} 
+              src={post.featured_image || "/placeholder.svg"} 
               alt={post.title} 
               className="w-full h-auto object-cover max-h-96"
             />
@@ -200,23 +275,29 @@ const BlogDetail = () => {
             {/* Main Content */}
             <div className="md:col-span-9 slide-up" style={{ animationDelay: '0.4s' }}>
               <article className="prose prose-lg max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                <div dangerouslySetInnerHTML={{ __html: post.content || '' }} />
               </article>
               
               {/* Tags */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <div className="flex flex-wrap gap-2">
-                  <div className="flex items-center text-gray-600 mr-2">
-                    <Tag className="h-4 w-4 mr-2" />
-                    <span className="font-medium">Tags:</span>
+              {post.tags && post.tags.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center text-gray-600 mr-2">
+                      <Tag className="h-4 w-4 mr-2" />
+                      <span className="font-medium">Tags:</span>
+                    </div>
+                    {post.tags.map((tag) => (
+                      <Link 
+                        key={tag.id} 
+                        to={`/blog?tag=${tag.slug}`}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-gray-200 cursor-pointer transition-colors"
+                      >
+                        {tag.name}
+                      </Link>
+                    ))}
                   </div>
-                  {["Education", "VirtualLabs", "EdTech", "STEM"].map((tag) => (
-                    <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-gray-200 cursor-pointer transition-colors">
-                      {tag}
-                    </span>
-                  ))}
                 </div>
-              </div>
+              )}
               
               {/* Share */}
               <div className="mt-8 pt-6 border-t border-gray-200">
@@ -226,19 +307,122 @@ const BlogDetail = () => {
                     <span className="font-medium">Share this article:</span>
                   </div>
                   <div className="flex space-x-3">
-                    <a href="#facebook" className="w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600 flex items-center justify-center transition-colors" aria-label="Share on Facebook">
+                    <button 
+                      onClick={() => handleShare('facebook')} 
+                      className="w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600 flex items-center justify-center transition-colors" 
+                      aria-label="Share on Facebook"
+                    >
                       <Facebook className="h-4 w-4" />
-                    </a>
-                    <a href="#twitter" className="w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-400 hover:text-white text-gray-600 flex items-center justify-center transition-colors" aria-label="Share on Twitter">
+                    </button>
+                    <button 
+                      onClick={() => handleShare('twitter')} 
+                      className="w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-400 hover:text-white text-gray-600 flex items-center justify-center transition-colors" 
+                      aria-label="Share on Twitter"
+                    >
                       <Twitter className="h-4 w-4" />
-                    </a>
-                    <a href="#linkedin" className="w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-700 hover:text-white text-gray-600 flex items-center justify-center transition-colors" aria-label="Share on LinkedIn">
+                    </button>
+                    <button 
+                      onClick={() => handleShare('linkedin')} 
+                      className="w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-700 hover:text-white text-gray-600 flex items-center justify-center transition-colors" 
+                      aria-label="Share on LinkedIn"
+                    >
                       <Linkedin className="h-4 w-4" />
-                    </a>
-                    <a href="#email" className="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-500 hover:text-white text-gray-600 flex items-center justify-center transition-colors" aria-label="Share via Email">
+                    </button>
+                    <button 
+                      onClick={() => handleShare('email')} 
+                      className="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-500 hover:text-white text-gray-600 flex items-center justify-center transition-colors" 
+                      aria-label="Share via Email"
+                    >
                       <Mail className="h-4 w-4" />
-                    </a>
+                    </button>
                   </div>
+                </div>
+              </div>
+
+              {/* Comments Section */}
+              <div className="mt-12 pt-8 border-t border-gray-200">
+                <h3 className="text-2xl font-bold mb-6">Comments ({comments.length})</h3>
+                
+                {comments.length > 0 ? (
+                  <div className="space-y-6 mb-8">
+                    {comments.map(comment => (
+                      <Card key={comment.id} className="bg-gray-50 border-gray-200">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start space-x-4">
+                            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
+                              <User className="h-5 w-5 text-gray-600" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-medium">{comment.author_name}</h4>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(comment.created_at).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              <p className="mt-2 text-gray-700">{comment.content}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-6 mb-8 text-center">
+                    <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <h4 className="font-medium text-lg">No comments yet</h4>
+                    <p className="text-gray-500">Be the first to leave a comment on this article!</p>
+                  </div>
+                )}
+                
+                {/* Comment Form */}
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h3 className="text-xl font-bold mb-4">Leave a Comment</h3>
+                  <form onSubmit={handleCommentSubmit}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label htmlFor="author_name" className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                        <Input
+                          id="author_name"
+                          name="author_name"
+                          value={commentForm.author_name}
+                          onChange={handleCommentChange}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="author_email" className="block text-sm font-medium text-gray-700 mb-1">Email * (will not be published)</label>
+                        <Input
+                          id="author_email"
+                          name="author_email"
+                          type="email"
+                          value={commentForm.author_email}
+                          onChange={handleCommentChange}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">Comment *</label>
+                      <Textarea
+                        id="content"
+                        name="content"
+                        rows={4}
+                        value={commentForm.content}
+                        onChange={handleCommentChange}
+                        required
+                      />
+                    </div>
+                    <div className="text-sm text-gray-500 mb-4">
+                      Your comment will be visible after approval by a moderator.
+                    </div>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? 'Submitting...' : 'Submit Comment'}
+                    </Button>
+                  </form>
                 </div>
               </div>
             </div>
@@ -254,37 +438,48 @@ const BlogDetail = () => {
                       <User className="h-6 w-6 text-gray-500" />
                     </div>
                     <div>
-                      <p className="font-medium">{post.author}</p>
+                      <p className="font-medium">{post.author?.full_name || post.author?.username || 'Anonymous'}</p>
                       <p className="text-sm text-gray-500">Education Specialist</p>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-4">
                     Specializing in digital education trends and educational technology integration in K-12 classrooms.
                   </p>
-                  <a href="#author-profile" className="text-anondopath-blue hover:text-anondopath-teal text-sm font-medium transition-colors">
-                    View Profile
-                  </a>
                 </div>
                 
                 {/* Popular Articles */}
-                <div className="bg-gray-50 rounded-xl p-6 slide-up" style={{ animationDelay: '0.6s' }}>
-                  <h3 className="font-bold text-lg mb-4">Popular Articles</h3>
-                  <div className="space-y-4">
-                    {blogPosts.slice(0, 3).map((relatedPost) => (
-                      <div key={relatedPost.id} className="flex items-start space-x-3">
-                        <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-gray-200">
-                          <img src={relatedPost.image} alt={relatedPost.title} className="w-full h-full object-cover" />
+                {relatedPosts.length > 0 && (
+                  <div className="bg-gray-50 rounded-xl p-6 slide-up" style={{ animationDelay: '0.6s' }}>
+                    <h3 className="font-bold text-lg mb-4">Popular Articles</h3>
+                    <div className="space-y-4">
+                      {relatedPosts.slice(0, 3).map((relatedPost) => (
+                        <div key={relatedPost.id} className="flex items-start space-x-3">
+                          <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-gray-200">
+                            <img 
+                              src={relatedPost.featured_image || "/placeholder.svg"} 
+                              alt={relatedPost.title} 
+                              className="w-full h-full object-cover" 
+                            />
+                          </div>
+                          <div>
+                            <Link 
+                              to={`/blog/${relatedPost.slug}`} 
+                              className="text-sm font-medium hover:text-anondopath-blue transition-colors leading-tight block"
+                            >
+                              {relatedPost.title}
+                            </Link>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {relatedPost.published_at 
+                                ? new Date(relatedPost.published_at).toLocaleDateString() 
+                                : new Date(relatedPost.created_at).toLocaleDateString()
+                              }
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <Link to={`/blog/${relatedPost.id}`} className="text-sm font-medium hover:text-anondopath-blue transition-colors leading-tight block">
-                            {relatedPost.title}
-                          </Link>
-                          <p className="text-xs text-gray-500 mt-1">{relatedPost.date}</p>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -297,16 +492,16 @@ const BlogDetail = () => {
               <h2 className="text-2xl md:text-3xl font-bold mb-8 slide-up">Related Articles</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {relatedPosts.map((post, index) => (
+                {relatedPosts.map((relatedPost, index) => (
                   <div 
-                    key={post.id} 
+                    key={relatedPost.id} 
                     className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 transition-all duration-300 hover:shadow-md slide-up"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <div className="h-48 overflow-hidden">
                       <img 
-                        src={post.image}
-                        alt={post.title}
+                        src={relatedPost.featured_image || "/placeholder.svg"}
+                        alt={relatedPost.title}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
                     </div>
@@ -314,19 +509,19 @@ const BlogDetail = () => {
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <span className="px-3 py-1 bg-anondopath-blue/10 text-anondopath-blue text-xs rounded-full">
-                          {post.category}
+                          {relatedPost.category?.name || 'Uncategorized'}
                         </span>
                         <div className="flex items-center text-gray-500 text-sm">
                           <Clock className="h-4 w-4 mr-1" />
-                          <span>{post.readTime}</span>
+                          <span>{relatedPost.read_time || '5 min read'}</span>
                         </div>
                       </div>
                       
-                      <h3 className="text-xl font-bold mb-3">{post.title}</h3>
-                      <p className="text-gray-600 mb-4 line-clamp-3">{post.excerpt}</p>
+                      <h3 className="text-xl font-bold mb-3">{relatedPost.title}</h3>
+                      <p className="text-gray-600 mb-4 line-clamp-3">{relatedPost.excerpt}</p>
                       
                       <Link 
-                        to={`/blog/${post.id}`} 
+                        to={`/blog/${relatedPost.slug}`} 
                         className="mt-4 text-anondopath-teal hover:text-anondopath-blue inline-flex items-center font-medium transition-colors"
                       >
                         Read More <ArrowRight className="ml-2 h-4 w-4" />
