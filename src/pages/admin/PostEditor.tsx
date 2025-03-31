@@ -14,6 +14,8 @@ import { ArrowLeft, Save, Eye, Upload, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getPostById, getCategories, getTags, createPost, updatePost, uploadImage, generateSlug, calculateReadingTime } from '@/services/blogService';
 import { BlogPost, BlogCategory, BlogTag } from '@/types/blog';
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const PostEditor = () => {
   const { id } = useParams<{ id: string }>();
@@ -101,8 +103,8 @@ const PostEditor = () => {
     setPost(prev => ({ ...prev, category_id: value }));
   };
   
-  const handleStatusChange = (value: 'draft' | 'published') => {
-    setPost(prev => ({ ...prev, status: value }));
+  const handleStatusChange = (value: string) => {
+    setPost(prev => ({ ...prev, status: value as 'draft' | 'published' }));
   };
   
   const handleTagsChange = (tagId: string) => {
@@ -238,7 +240,7 @@ const PostEditor = () => {
                     <Input
                       id="title"
                       name="title"
-                      value={post.title}
+                      value={post.title || ''}
                       onChange={handleChange}
                       placeholder="Enter post title"
                       className="mt-1"
@@ -250,7 +252,7 @@ const PostEditor = () => {
                     <Input
                       id="slug"
                       name="slug"
-                      value={post.slug}
+                      value={post.slug || ''}
                       onChange={handleChange}
                       placeholder="post-url-slug"
                       className="mt-1"
@@ -315,8 +317,8 @@ const PostEditor = () => {
                   <div>
                     <Label htmlFor="status">Status</Label>
                     <Select 
-                      value={post.status} 
-                      onValueChange={(value) => handleStatusChange(value as 'draft' | 'published')}
+                      value={post.status || 'draft'} 
+                      onValueChange={handleStatusChange}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
@@ -340,7 +342,9 @@ const PostEditor = () => {
                       <SelectContent>
                         <SelectItem value="">Uncategorized</SelectItem>
                         {categories.map(category => (
-                          <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -366,7 +370,7 @@ const PostEditor = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+                  <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center relative">
                     <Upload className="mx-auto h-8 w-8 text-gray-400" />
                     <p className="mt-2 text-sm text-gray-500">Click to upload an image</p>
                     <input

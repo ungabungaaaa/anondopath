@@ -56,10 +56,9 @@ const AppRoutes = () => {
           <Route path="posts" element={<AdminPostsList />} />
           <Route path="posts/new" element={<PostEditor />} />
           <Route path="posts/:id" element={<PostEditor />} />
-          {/* Add other admin routes as they're implemented */}
         </Route>
         
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        {/* 404 Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
