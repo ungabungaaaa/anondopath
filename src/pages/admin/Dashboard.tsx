@@ -1,248 +1,228 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  FileText, 
-  FolderOpen, 
-  Tag, 
-  MessageSquare, 
-  ArrowRight,
-  PlusCircle
-} from 'lucide-react';
+
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { FilePlus, LayoutGrid, MessageSquare, ArrowUpRight, Tag, FolderOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
-import { getAdminPosts } from '@/services/blogService';
 
-const StatCard = ({ title, value, icon, linkTo, color }: { 
-  title: string; 
-  value: number; 
-  icon: React.ReactNode; 
-  linkTo: string; 
-  color: string;
-}) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <div className={`rounded-md p-2 ${color}`}>
-        {icon}
-      </div>
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold">{value}</div>
-    </CardContent>
-    <CardFooter>
-      <Link to={linkTo} className="text-sm text-blue-600 hover:text-blue-800 flex items-center">
-        View all
-        <ArrowRight className="ml-1 h-4 w-4" />
-      </Link>
-    </CardFooter>
-  </Card>
-);
+interface DashboardMetrics {
+  posts: number;
+  categories: number;
+  tags: number;
+  comments: number;
+  pendingComments: number;
+  drafts: number;
+}
 
-const Dashboard = () => {
-  const [stats, setStats] = useState({
+const AdminDashboard = () => {
+  const { isAuthenticated } = useAdminAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
     posts: 0,
     categories: 0,
     tags: 0,
     comments: 0,
     pendingComments: 0,
+    drafts: 0
   });
 
-  // Query for recent posts
-  const { data: recentPostsData } = useQuery({
-    queryKey: ['recentPosts'],
-    queryFn: () => getAdminPosts(1, 5),
-  });
-
-  // Fetch stats
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { count: postsCount } = await supabase
-          .from('blog_posts')
-          .select('*', { count: 'exact', head: true });
-          
-        const { count: categoriesCount } = await supabase
-          .from('blog_categories')
-          .select('*', { count: 'exact', head: true });
-          
-        const { count: tagsCount } = await supabase
-          .from('blog_tags')
-          .select('*', { count: 'exact', head: true });
-          
-        const { count: commentsCount } = await supabase
-          .from('blog_comments')
-          .select('*', { count: 'exact', head: true });
-          
-        const { count: pendingCommentsCount } = await supabase
-          .from('blog_comments')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_approved', false);
+    if (!isAuthenticated) {
+      navigate('/admin/login');
+    } else {
+      fetchDashboardMetrics();
+    }
+  }, [isAuthenticated, navigate]);
 
-        setStats({
-          posts: postsCount || 0,
-          categories: categoriesCount || 0,
-          tags: tagsCount || 0,
-          comments: commentsCount || 0,
-          pendingComments: pendingCommentsCount || 0,
-        });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      }
-    };
+  const fetchDashboardMetrics = async () => {
+    try {
+      setIsLoading(true);
+      // Fetch counts for different entities
+      const [
+        postsResponse,
+        categoriesResponse,
+        tagsResponse,
+        commentsResponse,
+        pendingCommentsResponse,
+        draftsResponse
+      ] = await Promise.all([
+        supabase.from('blog_posts').select('*', { count: 'exact', head: true }),
+        supabase.from('blog_categories').select('*', { count: 'exact', head: true }),
+        supabase.from('blog_tags').select('*', { count: 'exact', head: true }),
+        supabase.from('blog_comments').select('*', { count: 'exact', head: true }),
+        supabase.from('blog_comments').select('*', { count: 'exact', head: true }).eq('is_approved', false),
+        supabase.from('blog_posts').select('*', { count: 'exact', head: true }).eq('status', 'draft')
+      ]);
 
-    fetchStats();
-  }, []);
+      setMetrics({
+        posts: postsResponse.count || 0,
+        categories: categoriesResponse.count || 0,
+        tags: tagsResponse.count || 0,
+        comments: commentsResponse.count || 0,
+        pendingComments: pendingCommentsResponse.count || 0,
+        drafts: draftsResponse.count || 0
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard metrics:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
         <Button asChild>
-          <Link to="/admin/posts/new">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Post
+          <Link to="/admin/posts/new" className="flex items-center">
+            <FilePlus className="mr-2 h-4 w-4" /> New Post
           </Link>
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Posts"
-          value={stats.posts}
-          icon={<FileText className="h-5 w-5 text-white" />}
-          linkTo="/admin/posts"
-          color="bg-blue-500"
-        />
-        <StatCard
-          title="Categories"
-          value={stats.categories}
-          icon={<FolderOpen className="h-5 w-5 text-white" />}
-          linkTo="/admin/categories"
-          color="bg-green-500"
-        />
-        <StatCard
-          title="Tags"
-          value={stats.tags}
-          icon={<Tag className="h-5 w-5 text-white" />}
-          linkTo="/admin/tags"
-          color="bg-purple-500"
-        />
-        <StatCard
-          title="Comments"
-          value={stats.comments}
-          icon={<MessageSquare className="h-5 w-5 text-white" />}
-          linkTo="/admin/comments"
-          color="bg-orange-500"
-        />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Recent Posts */}
-        <Card className="col-span-1">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Recent Posts</CardTitle>
-              <Link to="/admin/posts" className="text-sm text-blue-600 hover:text-blue-800">
-                View all
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentPostsData?.posts && recentPostsData.posts.length > 0 ? (
-              <div className="space-y-4">
-                {recentPostsData.posts.map(post => (
-                  <div key={post.id} className="flex items-center justify-between border-b pb-2">
-                    <div>
-                      <Link to={`/admin/posts/edit/${post.id}`} className="font-medium hover:text-blue-600">
-                        {post.title}
-                      </Link>
-                      <div className="text-sm text-gray-500">
-                        {post.status === 'published' ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                            Published
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Draft
-                          </span>
-                        )}
-                        <span className="ml-2">
-                          {new Date(post.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <Link to={`/admin/posts/edit/${post.id}`} className="text-blue-600 hover:text-blue-800">
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                ))}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Array(6).fill(null).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="bg-gray-100 h-16"></CardHeader>
+              <CardContent className="pt-6">
+                <div className="bg-gray-100 h-8 w-20 rounded mb-2"></div>
+                <div className="bg-gray-100 h-6 w-32 rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="bg-blue-50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-500">Published Posts</CardTitle>
+                <LayoutGrid className="h-5 w-5 text-blue-500" />
               </div>
-            ) : (
-              <div className="text-center py-6 text-gray-500">No posts yet</div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Pending Comments */}
-        <Card className="col-span-1">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Pending Comments ({stats.pendingComments})</CardTitle>
-              <Link to="/admin/comments" className="text-sm text-blue-600 hover:text-blue-800">
-                View all
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold">{metrics.posts}</div>
+              <p className="text-gray-500 mt-1 text-sm">Total published blog posts</p>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Link to="/admin/posts" className="text-blue-600 text-sm font-medium hover:underline flex items-center">
+                View all posts <ArrowUpRight className="ml-1 h-3 w-3" />
               </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {stats.pendingComments > 0 ? (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-yellow-800">
-                <p>You have {stats.pendingComments} pending comments that need approval.</p>
-                <Button variant="outline" className="mt-3" asChild>
-                  <Link to="/admin/comments">
-                    Review Comments
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader className="bg-amber-50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-500">Drafts</CardTitle>
+                <FilePlus className="h-5 w-5 text-amber-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold">{metrics.drafts}</div>
+              <p className="text-gray-500 mt-1 text-sm">Posts saved as draft</p>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Link to="/admin/posts?status=draft" className="text-amber-600 text-sm font-medium hover:underline flex items-center">
+                View drafts <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader className="bg-green-50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-500">Comments</CardTitle>
+                <MessageSquare className="h-5 w-5 text-green-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold">{metrics.comments}</div>
+              <p className="text-gray-500 mt-1 text-sm">
+                {metrics.pendingComments > 0 && (
+                  <span className="text-amber-600 font-medium">{metrics.pendingComments} pending approval</span>
+                )}
+                {metrics.pendingComments === 0 && "All comments approved"}
+              </p>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Link to="/admin/comments" className="text-green-600 text-sm font-medium hover:underline flex items-center">
+                Moderate comments <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader className="bg-purple-50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-500">Categories</CardTitle>
+                <FolderOpen className="h-5 w-5 text-purple-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold">{metrics.categories}</div>
+              <p className="text-gray-500 mt-1 text-sm">Content categories</p>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Link to="/admin/categories" className="text-purple-600 text-sm font-medium hover:underline flex items-center">
+                Manage categories <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader className="bg-indigo-50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-500">Tags</CardTitle>
+                <Tag className="h-5 w-5 text-indigo-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold">{metrics.tags}</div>
+              <p className="text-gray-500 mt-1 text-sm">Content tags</p>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Link to="/admin/tags" className="text-indigo-600 text-sm font-medium hover:underline flex items-center">
+                Manage tags <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader className="bg-gray-100">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-500">Quick Actions</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-2">
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to="/admin/posts/new">
+                    <FilePlus className="mr-2 h-4 w-4" /> Create new post
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to="/admin/categories/new">
+                    <FolderOpen className="mr-2 h-4 w-4" /> Add category
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to="/admin/tags/new">
+                    <Tag className="mr-2 h-4 w-4" /> Add tag
                   </Link>
                 </Button>
               </div>
-            ) : (
-              <div className="text-center py-6 text-gray-500">No pending comments</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-medium mb-4">Quick Links</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button variant="outline" asChild className="h-auto py-4 flex flex-col items-center justify-center">
-            <Link to="/admin/posts/new">
-              <FileText className="h-6 w-6 mb-2" />
-              <span>New Post</span>
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="h-auto py-4 flex flex-col items-center justify-center">
-            <Link to="/admin/categories/new">
-              <FolderOpen className="h-6 w-6 mb-2" />
-              <span>New Category</span>
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="h-auto py-4 flex flex-col items-center justify-center">
-            <Link to="/admin/tags/new">
-              <Tag className="h-6 w-6 mb-2" />
-              <span>New Tag</span>
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="h-auto py-4 flex flex-col items-center justify-center">
-            <Link to="/admin/comments">
-              <MessageSquare className="h-6 w-6 mb-2" />
-              <span>Manage Comments</span>
-            </Link>
-          </Button>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;

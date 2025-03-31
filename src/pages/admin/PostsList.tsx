@@ -1,291 +1,378 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getAdminPosts, deletePost } from '@/services/blogService';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
+import { Input } from '@/components/ui/input';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/dropdown-menu';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
 import { 
-  PlusCircle, 
+  FilePlus, 
   Search, 
-  Edit, 
+  MoreHorizontal, 
+  Pencil, 
   Trash2, 
-  MoreVertical,
-  Eye,
-  Filter,
-  CheckCircle2,
-  XCircle
+  Eye, 
+  Layout,
+  Loader2
 } from 'lucide-react';
+import { getAdminPosts, deletePost } from '@/services/blogService';
+import { BlogPost } from '@/types/blog';
 
-const PostsList = () => {
+const AdminPostsList = () => {
+  const { isAuthenticated } = useAdminAuth();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [totalPosts, setTotalPosts] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   const [currentPage, setCurrentPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<string | null>(null);
-  const postsPerPage = 10;
-  const queryClient = useQueryClient();
-
-  // Query for posts with filters
-  const { data: postsData, isLoading } = useQuery({
-    queryKey: ['adminPosts', currentPage, statusFilter, search],
-    queryFn: () => getAdminPosts(currentPage, postsPerPage, statusFilter, search),
-  });
-
-  const confirmDelete = (postId: string) => {
-    setPostToDelete(postId);
-    setDeleteDialogOpen(true);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState(searchParams.get('status') || 'all');
+  
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/admin/login');
+    } else {
+      fetchPosts();
+    }
+  }, [isAuthenticated, navigate, currentPage, pageSize, filter]);
+  
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get status filter
+      const statusFilter = filter === 'all' ? undefined : filter;
+      
+      // Fetch posts with pagination, filtering and search
+      const { posts: fetchedPosts, count } = await getAdminPosts(
+        currentPage, 
+        pageSize,
+        statusFilter,
+        searchQuery || undefined
+      );
+      
+      setPosts(fetchedPosts);
+      setTotalPosts(count);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load posts. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const handleDelete = async () => {
-    if (!postToDelete) return;
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchPosts();
+  };
+  
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
+    setCurrentPage(1);
+    
+    // Update URL params
+    if (value === 'all') {
+      searchParams.delete('status');
+    } else {
+      searchParams.set('status', value);
+    }
+    setSearchParams(searchParams);
+  };
+  
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value));
+    setCurrentPage(1);
+  };
+  
+  const handleDelete = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
+      return;
+    }
     
     try {
-      await deletePost(postToDelete);
-      queryClient.invalidateQueries({ queryKey: ['adminPosts'] });
-      toast({
-        title: "Post deleted",
-        description: "The post has been successfully deleted",
-      });
+      setIsDeleting(true);
+      const success = await deletePost(id);
+      
+      if (success) {
+        toast({
+          title: "Post deleted",
+          description: "The post has been successfully deleted.",
+        });
+        fetchPosts();
+      } else {
+        throw new Error('Failed to delete post');
+      }
     } catch (error) {
+      console.error('Error deleting post:', error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to delete post. Please try again.",
       });
     } finally {
-      setDeleteDialogOpen(false);
-      setPostToDelete(null);
+      setIsDeleting(false);
     }
   };
-
-  // Calculate total pages
-  const totalPages = postsData?.count ? Math.ceil(postsData.count / postsPerPage) : 0;
-
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+  
+  const totalPages = Math.ceil(totalPosts / pageSize);
+  
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString(undefined, { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+  
+  if (!isAuthenticated) {
+    return null;
+  }
+  
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Blog Posts</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Blog Posts</h1>
         <Button asChild>
-          <Link to="/admin/posts/new">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Post
+          <Link to="/admin/posts/new" className="flex items-center">
+            <FilePlus className="mr-2 h-4 w-4" /> New Post
           </Link>
         </Button>
       </div>
-
-      <div className="bg-white rounded-md shadow">
-        {/* Filters */}
-        <div className="p-4 border-b flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative w-full sm:max-w-xs">
-            <Input
-              type="text"
-              placeholder="Search posts..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <Search className="h-4 w-4" />
-            </div>
+      
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <Tabs 
+          defaultValue={filter} 
+          className="w-full md:w-auto"
+          onValueChange={handleFilterChange}
+        >
+          <TabsList className="grid grid-cols-3 w-full md:w-auto">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="published">Published</TabsTrigger>
+            <TabsTrigger value="draft">Drafts</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
+        <form onSubmit={handleSearch} className="flex w-full md:w-auto">
+          <Input
+            placeholder="Search posts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="rounded-r-none"
+          />
+          <Button type="submit" variant="secondary" className="rounded-l-none">
+            <Search className="h-4 w-4" />
+          </Button>
+        </form>
+      </div>
+      
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[40%]">Title</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Published</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-32 text-center">
+                  <div className="flex justify-center items-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : posts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-32 text-center">
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <Layout className="h-8 w-8 text-gray-400 mb-2" />
+                    <p className="text-gray-500">No posts found.</p>
+                    {searchQuery && (
+                      <p className="text-gray-500 text-sm mt-1">
+                        Try adjusting your search query.
+                      </p>
+                    )}
+                    <Button 
+                      variant="link" 
+                      asChild 
+                      className="mt-2"
+                    >
+                      <Link to="/admin/posts/new">
+                        Create a new post
+                      </Link>
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              posts.map((post) => (
+                <TableRow key={post.id}>
+                  <TableCell className="font-medium">
+                    {post.title}
+                    <div className="text-gray-500 text-sm mt-1 truncate">
+                      {post.slug}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className={`
+                      inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                      ${post.status === 'published' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-amber-100 text-amber-800'}
+                    `}>
+                      {post.status === 'published' ? 'Published' : 'Draft'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {post.category?.name || 'Uncategorized'}
+                  </TableCell>
+                  <TableCell>
+                    {post.status === 'published' 
+                      ? formatDate(post.published_at)
+                      : '-'
+                    }
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to={`/admin/posts/${post.id}`} className="flex items-center cursor-pointer">
+                              <Pencil className="mr-2 h-4 w-4" />
+                              <span>Edit</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link 
+                              to={`/blog/${post.slug}`} 
+                              target="_blank" 
+                              className="flex items-center cursor-pointer"
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              <span>View</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(post.id, post.title)}
+                            className="text-red-600 focus:text-red-600 cursor-pointer"
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-gray-500">
+          {!isLoading && (
+            <>
+              Showing {posts.length} of {totalPosts} posts
+            </>
+          )}
+        </div>
+        
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">Rows per page:</span>
+            <Select 
+              value={pageSize.toString()} 
+              onValueChange={handlePageSizeChange}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={pageSize.toString()} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="flex space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center">
-                  <Filter className="mr-2 h-4 w-4" />
-                  {statusFilter ? `Status: ${statusFilter}` : 'Filter by Status'}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setStatusFilter(undefined)}>
-                  All Posts
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter('published')}>
-                  Published
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter('draft')}>
-                  Draft
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isLoading}
+            >
+              Previous
+            </Button>
+            
+            <div className="text-sm">
+              Page {currentPage} of {Math.max(1, totalPages)}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages || isLoading}
+            >
+              Next
+            </Button>
           </div>
         </div>
-
-        {/* Table */}
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-anondopath-teal"></div>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50%]">Title</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {postsData?.posts && postsData.posts.length > 0 ? (
-                    postsData.posts.map((post) => (
-                      <TableRow key={post.id}>
-                        <TableCell className="font-medium">{post.title}</TableCell>
-                        <TableCell>
-                          {post.status === 'published' ? (
-                            <div className="flex items-center">
-                              <CheckCircle2 className="h-4 w-4 text-green-500 mr-1" />
-                              <span>Published</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center">
-                              <XCircle className="h-4 w-4 text-amber-500 mr-1" />
-                              <span>Draft</span>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>{post.author?.username || 'Unknown'}</TableCell>
-                        <TableCell>
-                          {new Date(post.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link to={`/blog/${post.slug}`} target="_blank" className="flex items-center">
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  <span>View</span>
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link to={`/admin/posts/edit/${post.id}`} className="flex items-center">
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  <span>Edit</span>
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="text-red-600"
-                                onClick={() => confirmDelete(post.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                        No posts found. Create your first post!
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center py-4">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(page)}
-                          isActive={currentPage === page}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
-          </>
-        )}
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this post? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
 
-export default PostsList;
+export default AdminPostsList;

@@ -20,6 +20,7 @@ import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminPostsList from "./pages/admin/PostsList";
+import PostEditor from "./pages/admin/PostEditor";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,8 @@ const AppRoutes = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="posts" element={<AdminPostsList />} />
+          <Route path="posts/new" element={<PostEditor />} />
+          <Route path="posts/:id" element={<PostEditor />} />
           {/* Add other admin routes as they're implemented */}
         </Route>
         

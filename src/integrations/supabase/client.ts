@@ -9,4 +9,30 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true
+  },
+  global: {
+    headers: {
+      'x-application-name': 'anondopath-blog'
+    }
+  }
+});
+
+// Initialize storage bucket for blog images if it doesn't exist
+(async () => {
+  try {
+    const { data: buckets } = await supabase.storage.listBuckets();
+    if (!buckets?.find(bucket => bucket.name === 'blog')) {
+      await supabase.storage.createBucket('blog', {
+        public: true,
+        fileSizeLimit: 5242880, // 5MB
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+      });
+      console.log('Blog storage bucket created successfully');
+    }
+  } catch (error) {
+    console.error('Error initializing blog storage bucket:', error);
+  }
+})();
