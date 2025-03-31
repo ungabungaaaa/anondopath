@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -60,19 +59,26 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [
-          { count: postsCount },
-          { count: categoriesCount },
-          { count: tagsCount },
-          { count: commentsCount },
-          { count: pendingCommentsCount },
-        ] = await Promise.all([
-          supabase.from('blog_posts').select('*', { count: 'exact', head: true }),
-          supabase.from('blog_categories').select('*', { count: 'exact', head: true }),
-          supabase.from('blog_tags').select('*', { count: 'exact', head: true }),
-          supabase.from('blog_comments').select('*', { count: 'exact', head: true }),
-          supabase.from('blog_comments').select('*', { count: 'exact', head: true }).eq('is_approved', false),
-        ]);
+        const { count: postsCount } = await supabase
+          .from('blog_posts')
+          .select('*', { count: 'exact', head: true });
+          
+        const { count: categoriesCount } = await supabase
+          .from('blog_categories')
+          .select('*', { count: 'exact', head: true });
+          
+        const { count: tagsCount } = await supabase
+          .from('blog_tags')
+          .select('*', { count: 'exact', head: true });
+          
+        const { count: commentsCount } = await supabase
+          .from('blog_comments')
+          .select('*', { count: 'exact', head: true });
+          
+        const { count: pendingCommentsCount } = await supabase
+          .from('blog_comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_approved', false);
 
         setStats({
           posts: postsCount || 0,

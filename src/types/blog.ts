@@ -65,3 +65,50 @@ export interface AdminAuthState {
   isLoading: boolean;
   error: string | null;
 }
+
+// Add TypeScript helper types for the Supabase database
+export type Database = {
+  public: {
+    Tables: {
+      blog_users: {
+        Row: BlogUser;
+        Insert: Omit<BlogUser, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<BlogUser, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      blog_categories: {
+        Row: BlogCategory;
+        Insert: Omit<BlogCategory, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<BlogCategory, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      blog_tags: {
+        Row: BlogTag;
+        Insert: Omit<BlogTag, 'id' | 'created_at'>;
+        Update: Partial<Omit<BlogTag, 'id' | 'created_at'>>;
+      };
+      blog_posts: {
+        Row: Omit<BlogPost, 'author' | 'category' | 'tags'>;
+        Insert: Omit<BlogPost, 'id' | 'created_at' | 'updated_at' | 'author' | 'category' | 'tags'>;
+        Update: Partial<Omit<BlogPost, 'id' | 'created_at' | 'updated_at' | 'author' | 'category' | 'tags'>>;
+      };
+      blog_posts_tags: {
+        Row: {
+          post_id: string;
+          tag_id: string;
+        };
+        Insert: {
+          post_id: string;
+          tag_id: string;
+        };
+        Update: {
+          post_id?: string;
+          tag_id?: string;
+        };
+      };
+      blog_comments: {
+        Row: BlogComment;
+        Insert: Omit<BlogComment, 'id' | 'created_at'>;
+        Update: Partial<Omit<BlogComment, 'id' | 'created_at'>>;
+      };
+    };
+  };
+};
