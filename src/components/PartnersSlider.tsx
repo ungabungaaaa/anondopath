@@ -5,10 +5,8 @@ import React, { useEffect, useRef } from 'react';
 const partners = [
   { id: 1, name: "ITU", logo: "/lovable-uploads/9ea336e8-3047-45ea-b900-035bd722b745.png", grayscale: false },
   { id: 2, name: "Accelerating Bangladesh", logo: "/lovable-uploads/4691b47e-025a-4bff-8519-42f22871464a.png", grayscale: false },
-  { id: 3, name: "Digital Bangladesh", logo: "/lovable-uploads/33133015-bac0-40f3-80f6-932c44694ce8.png", grayscale: false },
   { id: 4, name: "University Innovation Hub", logo: "/lovable-uploads/af2d40e0-efdf-4657-b7c9-233f69143ca8.png", grayscale: false },
   { id: 5, name: "Youth Startup Summit", logo: "/lovable-uploads/b9e915eb-1db8-490a-a2d5-02bc79f90c67.png", grayscale: false },
-  { id: 6, name: "Turtle Venture", logo: "/lovable-uploads/9d825685-acd1-4773-be63-4d20d963ea51.png", grayscale: false },
   { id: 7, name: "Turtle Venture Color", logo: "/lovable-uploads/1ef91d06-d607-4c1e-bdda-b11787de5ed2.png", grayscale: false },
   { id: 8, name: "Generation Connect", logo: "/lovable-uploads/57afde57-cdd6-4efe-a5d0-0c0d2b68a2af.png", grayscale: false }
 ];
