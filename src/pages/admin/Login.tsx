@@ -13,6 +13,7 @@ const AdminLogin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
   const { login, isAuthenticated, error } = useAdminAuth();
   const navigate = useNavigate();
 
@@ -25,27 +26,27 @@ const AdminLogin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setLocalError(null);
 
     try {
+      if (!username || !password) {
+        setLocalError('Username and password are required');
+        return;
+      }
+
       const success = await login({ username, password });
       if (success) {
-        toast({
-          title: "Login successful",
-          description: "You have been successfully logged in.",
-        });
         navigate('/admin/dashboard');
       }
     } catch (error: any) {
       console.error("Login submission error:", error);
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: error.message || "An error occurred during login.",
-      });
+      setLocalError(error.message || "An error occurred during login");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const displayError = localError || error;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -62,10 +63,10 @@ const AdminLogin = () => {
         <Card>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <CardContent className="pt-6">
-              {error && (
+              {displayError && (
                 <Alert variant="destructive" className="mb-6">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{displayError}</AlertDescription>
                 </Alert>
               )}
 

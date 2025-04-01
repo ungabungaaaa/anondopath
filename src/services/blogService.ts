@@ -14,9 +14,12 @@ export const loginAdmin = async (credentials: AdminLoginCredentials): Promise<Bl
   try {
     console.log("Attempting to login admin with credentials:", { username: credentials.username });
     
-    // Call our admin-login edge function
+    // Call our admin-login edge function with proper error handling
     const { data, error } = await supabase.functions.invoke('admin-login', {
-      body: credentials
+      body: credentials,
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
 
     if (error) {

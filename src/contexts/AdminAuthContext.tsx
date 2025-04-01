@@ -70,11 +70,12 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
         throw new Error('Login failed');
       }
     } catch (error: any) {
+      console.error("Login error in context:", error);
       setAuthState({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: error.message
+        error: error.message || "Authentication failed"
       });
       toast({
         variant: "destructive",
