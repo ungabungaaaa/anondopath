@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   BlogPost, 
@@ -11,7 +12,9 @@ import {
 // Admin Authentication
 export const loginAdmin = async (credentials: AdminLoginCredentials): Promise<BlogUser | null> => {
   try {
-    // Call our admin-login edge function instead of querying database directly
+    console.log("Attempting to login admin with credentials:", { username: credentials.username });
+    
+    // Call our admin-login edge function
     const { data, error } = await supabase.functions.invoke('admin-login', {
       body: credentials
     });
@@ -22,8 +25,11 @@ export const loginAdmin = async (credentials: AdminLoginCredentials): Promise<Bl
     }
     
     if (!data || !data.user) {
+      console.error("No user data returned from edge function");
       throw new Error('Invalid username or password');
     }
+    
+    console.log("Admin login successful:", data.user);
     
     // Store admin session in localStorage for persistence
     localStorage.setItem('blogAdminUser', JSON.stringify(data.user));

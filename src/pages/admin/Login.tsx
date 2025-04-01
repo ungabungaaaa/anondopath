@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LogIn, AlertCircle } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 const AdminLogin = () => {
   const [username, setUsername] = useState('');
@@ -28,8 +29,19 @@ const AdminLogin = () => {
     try {
       const success = await login({ username, password });
       if (success) {
+        toast({
+          title: "Login successful",
+          description: "You have been successfully logged in.",
+        });
         navigate('/admin/dashboard');
       }
+    } catch (error: any) {
+      console.error("Login submission error:", error);
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: error.message || "An error occurred during login.",
+      });
     } finally {
       setIsSubmitting(false);
     }
