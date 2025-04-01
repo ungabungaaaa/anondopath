@@ -1,168 +1,196 @@
 
-import React from 'react';
-import { useNavigate, Link, Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useNavigate, Link, NavLink } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { Button } from '@/components/ui/button';
-import {
-  LayoutDashboard,
-  FileText,
-  FolderOpen,
-  Tag,
-  MessageSquare,
-  Settings,
-  LogOut,
-  ChevronDown
-} from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Toaster } from '@/components/ui/toaster';
+} from "@/components/ui/dropdown-menu";
+import {
+  LayoutDashboard,
+  FileText,
+  Tag,
+  MessageSquare,
+  Users,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  ChevronRight,
+  Folder
+} from 'lucide-react';
 
-const AdminLayout: React.FC = () => {
-  const { user, logout, isAuthenticated } = useAdminAuth();
+const AdminLayout = () => {
+  const { isAuthenticated, isLoading, user, logout } = useAdminAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Redirect if not authenticated
-  React.useEffect(() => {
-    if (!isAuthenticated) {
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
       navigate('/admin/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
-  if (!isAuthenticated) {
-    return null; // Or a loading spinner
-  }
-
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/admin/login');
   };
 
-  const menuItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-    { name: 'Posts', path: '/admin/posts', icon: <FileText className="w-5 h-5" /> },
-    { name: 'Categories', path: '/admin/categories', icon: <FolderOpen className="w-5 h-5" /> },
-    { name: 'Tags', path: '/admin/tags', icon: <Tag className="w-5 h-5" /> },
-    { name: 'Comments', path: '/admin/comments', icon: <MessageSquare className="w-5 h-5" /> },
-    { name: 'Settings', path: '/admin/settings', icon: <Settings className="w-5 h-5" /> }
+  const navItems = [
+    { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+    { name: 'Posts', path: '/admin/posts', icon: <FileText className="h-5 w-5" /> },
+    { name: 'Categories', path: '/admin/categories', icon: <Folder className="h-5 w-5" /> },
+    { name: 'Tags', path: '/admin/tags', icon: <Tag className="h-5 w-5" /> },
+    { name: 'Comments', path: '/admin/comments', icon: <MessageSquare className="h-5 w-5" /> },
+    { name: 'Users', path: '/admin/users', icon: <Users className="h-5 w-5" /> },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const userInitials = user?.full_name 
+    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
+    : user?.username?.slice(0, 2).toUpperCase() || 'A';
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
-        <div className="flex items-center justify-center h-16 border-b border-gray-200 bg-anondopath-blue text-white">
-          <span className="text-xl font-bold">Blog Admin</span>
+    <div className="flex h-screen bg-gray-50">
+      {/* Mobile menu button */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      </div>
+      
+      {/* Sidebar for desktop */}
+      <div className="hidden lg:flex flex-col w-64 border-r bg-white">
+        <div className="px-6 py-6">
+          <Link to="/admin/dashboard" className="flex items-center">
+            <span className="text-xl font-semibold">Anondopath</span>
+            <span className="ml-2 text-sm text-gray-500">Admin</span>
+          </Link>
         </div>
-        
-        <div className="flex-1 overflow-auto py-4">
-          <nav className="px-2 space-y-1">
-            {menuItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md group"
-              >
-                <span className="mr-3 text-gray-500 group-hover:text-gray-700">{item.icon}</span>
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        
-        <div className="p-4 border-t border-gray-200">
-          <Button
-            variant="ghost"
-            className="flex items-center w-full justify-start"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-3 h-5 w-5" />
-            Log out
-          </Button>
+        <Separator />
+        <nav className="flex-1 px-4 py-4 space-y-1">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center px-2 py-2 rounded-md text-sm font-medium ${
+                  isActive
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`
+              }
+            >
+              {item.icon}
+              <span className="ml-3">{item.name}</span>
+            </NavLink>
+          ))}
+        </nav>
+        <div className="p-4 border-t">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="w-full justify-start px-2 py-2">
+                <Avatar className="h-8 w-8 mr-2">
+                  <AvatarFallback>{userInitials}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium truncate">
+                  {user?.full_name || user?.username || 'Admin User'}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-white shadow-sm z-10">
-          <div className="flex items-center justify-between px-4 py-3">
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="border-0">
-                    <span className="sr-only">Open menu</span>
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-52">
-                  {menuItems.map((item) => (
-                    <DropdownMenuItem key={item.path} asChild>
-                      <Link to={item.path} className="flex items-center">
-                        <span className="mr-2">{item.icon}</span>
-                        {item.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center">
-                    <LogOut className="mr-2 h-5 w-5" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+      {/* Mobile sidebar */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 flex">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)}></div>
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+            <div className="px-6 py-6">
+              <Link to="/admin/dashboard" className="flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
+                <span className="text-xl font-semibold">Anondopath</span>
+                <span className="ml-2 text-sm text-gray-500">Admin</span>
+              </Link>
             </div>
-
-            {/* Logo for Mobile */}
-            <Link to="/admin/dashboard" className="md:hidden">
-              <h1 className="text-lg font-bold">Blog Admin</h1>
-            </Link>
-
-            {/* Title / Breadcrumb for Desktop */}
-            <div className="hidden md:block">
-              <Link to="/" className="text-blue-600 hover:text-blue-800">Visit Site</Link>
-            </div>
-
-            {/* User Menu */}
-            <div className="flex items-center space-x-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="font-medium text-gray-600">{user?.username?.charAt(0).toUpperCase()}</span>
-                    </div>
-                    <span className="hidden md:inline-block">{user?.username}</span>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/settings" className="flex items-center">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <Separator />
+            <nav className="flex-1 px-4 py-4 space-y-1">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center px-2 py-2 rounded-md text-sm font-medium ${
+                      isActive
+                        ? 'bg-gray-100 text-gray-900'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {item.icon}
+                  <span className="ml-3">{item.name}</span>
+                </NavLink>
+              ))}
+            </nav>
+            <div className="p-4 border-t">
+              <Button variant="ghost" className="w-full justify-start px-2 py-2" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </Button>
             </div>
           </div>
-        </header>
+        </div>
+      )}
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-4 md:p-6">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col">
+        {/* Breadcrumb */}
+        <div className="bg-white shadow-sm border-b px-6 py-4">
+          <div className="flex items-center text-sm">
+            <Link to="/admin/dashboard" className="text-gray-500 hover:text-gray-700">
+              Admin
+            </Link>
+            <ChevronRight className="h-4 w-4 mx-2 text-gray-500" />
+            <span className="font-medium text-gray-900">
+              {navItems.find(item => 
+                window.location.pathname.startsWith(item.path))?.name || 'Dashboard'}
+            </span>
+          </div>
+        </div>
+        
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
       </div>
-      <Toaster />
     </div>
   );
 };

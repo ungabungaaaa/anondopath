@@ -21,6 +21,13 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminPostsList from "./pages/admin/PostsList";
 import PostEditor from "./pages/admin/PostEditor";
+import AdminCategoriesList from "./pages/admin/CategoriesList"; 
+import CategoryEditor from "./pages/admin/CategoryEditor";
+import AdminTagsList from "./pages/admin/TagsList";
+import TagEditor from "./pages/admin/TagEditor";
+import AdminCommentsList from "./pages/admin/CommentsList";
+import AdminUsersList from "./pages/admin/UsersList";
+import UserEditor from "./pages/admin/UserEditor";
 
 // ScrollToTop component to scroll to top when navigating between pages
 const ScrollToTop = () => {
@@ -54,6 +61,16 @@ const AppRoutes = () => {
           <Route path="posts" element={<AdminPostsList />} />
           <Route path="posts/new" element={<PostEditor />} />
           <Route path="posts/:id" element={<PostEditor />} />
+          <Route path="categories" element={<AdminCategoriesList />} />
+          <Route path="categories/new" element={<CategoryEditor />} />
+          <Route path="categories/:id" element={<CategoryEditor />} />
+          <Route path="tags" element={<AdminTagsList />} />
+          <Route path="tags/new" element={<TagEditor />} />
+          <Route path="tags/:id" element={<TagEditor />} />
+          <Route path="comments" element={<AdminCommentsList />} />
+          <Route path="users" element={<AdminUsersList />} />
+          <Route path="users/new" element={<UserEditor />} />
+          <Route path="users/:id" element={<UserEditor />} />
         </Route>
         
         {/* 404 Catch-all */}

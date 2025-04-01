@@ -1,130 +1,120 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+// Follow this setup guide to integrate the Deno language server with your editor:
+// https://deno.land/manual/getting_started/setup_your_environment
+// This enables autocomplete, go to definition, etc.
 
-interface AdminLoginCredentials {
-  username: string;
-  password: string;
-}
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
 
-serve(async (req) => {
+interface AdminLoginRequest {
+  username: string;
+  password: string;
+}
+
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders
+    })
   }
   
+  // Check if this is a POST request
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { 
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+
   try {
-    console.log("Admin login function triggered");
+    // Get the request body
+    const requestData: AdminLoginRequest = await req.json()
     
-    // Create a Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.error("Missing environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-      throw new Error("Server configuration error");
+    // Validate input
+    if (!requestData.username || !requestData.password) {
+      return new Response(JSON.stringify({ error: 'Username and password are required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
     
-    const supabaseClient = createClient(
-      supabaseUrl,
-      supabaseKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
+    // Get the environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
-    // Parse the request body
-    const credentials: AdminLoginCredentials = await req.json();
-    const { username, password } = credentials;
-
-    if (!username || !password) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Username and password are required' 
-        }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        }
-      );
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Environment variables SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY are not set")
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
-
-    console.log(`Authenticating user: ${username}`);
     
-    // Query the database for the admin user
-    const { data: user, error } = await supabaseClient
+    // Create a Supabase client with the service role key
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    
+    // Find user by username
+    const { data: user, error: userError } = await supabase
       .from('blog_users')
       .select('*')
-      .eq('username', username)
-      .eq('is_admin', true)
-      .single();
+      .eq('username', requestData.username)
+      .single()
     
-    if (error || !user) {
-      console.error('User not found or query error:', error);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Invalid username or password' 
-        }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        }
-      );
+    if (userError || !user) {
+      console.error("User not found:", userError)
+      return new Response(JSON.stringify({ error: 'Invalid username or password' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
-
-    // Check password (in a real app, this should use proper password hashing)
-    if (user.password !== password) {
-      console.error('Password mismatch');
-      return new Response(
-        JSON.stringify({ 
-          error: 'Invalid username or password' 
-        }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        }
-      );
+    
+    // Check if user is admin
+    if (!user.is_admin) {
+      console.error("User is not an admin:", requestData.username)
+      return new Response(JSON.stringify({ error: 'Account does not have admin access' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
-
-    // Password is correct, return the user data (excluding sensitive fields)
-    const { password: _, ...safeUser } = user;
     
-    console.log('Authentication successful for user:', username);
+    console.log("Found user:", user)
     
-    return new Response(
-      JSON.stringify({ 
-        user: safeUser
-      }),
-      {
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        }
-      }
-    );
+    // Verify password
+    const passwordMatch = await bcrypt.compare(requestData.password, user.password)
+    
+    if (!passwordMatch) {
+      console.error("Password doesn't match")
+      return new Response(JSON.stringify({ error: 'Invalid username or password' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+    
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user
+    
+    // Return the user information
+    return new Response(JSON.stringify({ 
+      success: true,
+      user: userWithoutPassword
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
   } catch (error) {
-    console.error('Unexpected error:', error);
-    
-    return new Response(
-      JSON.stringify({ 
-        error: 'An unexpected error occurred' 
-      }),
-      {
-        status: 500,
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        }
-      }
-    );
+    console.error("Error in admin-login function:", error)
+    return new Response(JSON.stringify({ error: error.message || 'Unknown error occurred' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
   }
-});
+})
