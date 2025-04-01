@@ -2,6 +2,7 @@
 export interface BlogUser {
   id: string;
   username: string;
+  password?: string; // Make password optional in the type
   email: string | null;
   full_name: string | null;
   is_admin: boolean;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
@@ -30,7 +29,6 @@ const UserEditor = () => {
     is_admin: true, // Default to admin for new users
   });
   
-  // Additional state for password change
   const [changePassword, setChangePassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,7 +43,6 @@ const UserEditor = () => {
       try {
         setIsLoading(true);
         
-        // If editing, fetch the user
         if (isEditMode && id) {
           const { data, error } = await supabase
             .from('blog_users')
@@ -63,7 +60,6 @@ const UserEditor = () => {
             return;
           }
           
-          // Remove password from state for security
           const { password, ...userWithoutPassword } = data;
           setUser(userWithoutPassword);
         }
@@ -101,7 +97,6 @@ const UserEditor = () => {
       return false;
     }
     
-    // For new users, password is required
     if (!isEditMode && !user.password) {
       toast({
         variant: "destructive",
@@ -111,7 +106,6 @@ const UserEditor = () => {
       return false;
     }
     
-    // For password change
     if (isEditMode && changePassword) {
       if (!newPassword) {
         toast({
@@ -141,7 +135,6 @@ const UserEditor = () => {
     try {
       setIsSaving(true);
       
-      // For new user or password change, hash the password
       let hashedPassword;
       if (!isEditMode || (isEditMode && changePassword && newPassword)) {
         const passwordToHash = isEditMode ? newPassword : user.password;
@@ -149,7 +142,6 @@ const UserEditor = () => {
       }
       
       if (isEditMode && id) {
-        // Update existing user
         const updates: Partial<BlogUser> = {
           username: user.username,
           email: user.email,
@@ -158,7 +150,6 @@ const UserEditor = () => {
           updated_at: new Date().toISOString(),
         };
         
-        // Only include password if it's being changed
         if (changePassword && hashedPassword) {
           updates.password = hashedPassword;
         }
@@ -175,7 +166,6 @@ const UserEditor = () => {
           description: "User information has been updated successfully.",
         });
       } else {
-        // Create new user
         const { error } = await supabase
           .from('blog_users')
           .insert([{ 
@@ -195,8 +185,7 @@ const UserEditor = () => {
     } catch (error: any) {
       console.error('Save error:', error);
       
-      // Handle unique constraint violation
-      if (error.code === '23505') { // PostgreSQL unique constraint violation
+      if (error.code === '23505') {
         toast({
           variant: "destructive",
           title: "Error",
@@ -348,7 +337,7 @@ const UserEditor = () => {
                   id="is_admin"
                   checked={!!user.is_admin}
                   onCheckedChange={handleToggleAdmin}
-                  disabled={isCurrentUser} // Don't allow removing admin from yourself
+                  disabled={isCurrentUser}
                 />
                 <Label htmlFor="is_admin" className="ml-2">
                   Admin Access

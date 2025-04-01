@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
@@ -23,13 +22,14 @@ import {
 } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
 import { 
-  TagPlus, 
+  Tag as TagIcon, 
   Search, 
   MoreHorizontal, 
   Pencil, 
   Trash2,
   Loader2,
-  Tag
+  Tag,
+  Plus
 } from 'lucide-react';
 import { getTags, deleteTag } from '@/services/blogService';
 import { BlogTag } from '@/types/blog';
@@ -138,7 +138,7 @@ const AdminTagsList = () => {
         <h1 className="text-2xl font-bold">Tags</h1>
         <Button asChild>
           <Link to="/admin/tags/new" className="flex items-center">
-            <TagPlus className="mr-2 h-4 w-4" /> New Tag
+            <Plus className="mr-2 h-4 w-4" /> New Tag
           </Link>
         </Button>
       </div>
