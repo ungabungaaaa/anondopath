@@ -69,8 +69,8 @@ const Hero = () => {
         <div className="w-full pt-16 mt-6">
           <p className="text-sm text-gray-500 mb-4 font-medium text-center">Trusted by educators worldwide</p>
           <div className="flex flex-wrap gap-8 items-center justify-center">
-            <img src="/lovable-uploads/b75aad07-8762-4182-bbde-f65c1ce89f14.png" alt="Partner logo" className="h-10 object-contain" />
-            <img src="/lovable-uploads/9ea336e8-3047-45ea-b900-035bd722b745.png" alt="Partner logo" className="h-10 object-contain" />
+            
+            
           </div>
         </div>
       </div>
