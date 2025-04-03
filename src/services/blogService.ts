@@ -356,11 +356,22 @@ export const createPost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'upd
     if (!admin) throw new Error('Not authenticated as admin');
     
     // Extract tags from post object and create a clean post object without tags
-    const { tags, ...postData } = {
+    const { tags, ...postDataRaw } = {
       ...post,
       author_id: admin.id,
       published_at: post.status === 'published' ? new Date().toISOString() : null,
     };
+    
+    // Process the data to handle empty strings for UUID columns
+    const postData = Object.entries(postDataRaw).reduce((acc, [key, value]) => {
+      // If the value is an empty string and the key looks like an ID field, set it to null
+      if (value === '' && (key.endsWith('_id') || key === 'id')) {
+        acc[key] = null;
+      } else {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, any>);
     
     // Insert the post without tags
     const { data, error } = await supabase
@@ -404,7 +415,18 @@ export const updatePost = async (id: string, post: Partial<BlogPost>): Promise<b
     if (!admin) throw new Error('Not authenticated as admin');
     
     // Extract tags from post object
-    const { tags, ...postData } = post;
+    const { tags, ...postDataRaw } = post;
+    
+    // Process the data to handle empty strings for UUID columns
+    const postData = Object.entries(postDataRaw).reduce((acc, [key, value]) => {
+      // If the value is an empty string and the key looks like an ID field, set it to null
+      if (value === '' && (key.endsWith('_id') || key === 'id')) {
+        acc[key] = null;
+      } else {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, any>);
     
     // If changing status to published, set the published_at date
     if (post.status === 'published') {

@@ -32,7 +32,7 @@ const PostEditor = () => {
     excerpt: '',
     content: '',
     featured_image: '',
-    category_id: '',
+    category_id: null,
     status: 'draft',
     tags: []
   });
@@ -99,7 +99,10 @@ const PostEditor = () => {
   };
   
   const handleCategoryChange = (value: string) => {
-    setPost(prev => ({ ...prev, category_id: value }));
+    setPost(prev => ({ 
+      ...prev, 
+      category_id: value === 'uncategorized' ? null : value 
+    }));
   };
   
   const handleStatusChange = (value: string) => {
