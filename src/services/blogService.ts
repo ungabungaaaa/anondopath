@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   BlogPost, 
@@ -356,24 +355,28 @@ export const createPost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'upd
     const admin = getCurrentAdmin();
     if (!admin) throw new Error('Not authenticated as admin');
     
-    // Set the author to the current admin user
-    const postData = {
+    // Extract tags from post object and create a clean post object without tags
+    const { tags, ...postData } = {
       ...post,
       author_id: admin.id,
       published_at: post.status === 'published' ? new Date().toISOString() : null,
     };
     
+    // Insert the post without tags
     const { data, error } = await supabase
       .from('blog_posts')
       .insert([postData])
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating post:', error);
+      throw error;
+    }
     
     // Handle tags if provided
-    if (post.tags && post.tags.length > 0 && data) {
-      const postTagsData = post.tags.map(tag => ({
+    if (tags && tags.length > 0 && data) {
+      const postTagsData = tags.map(tag => ({
         post_id: data.id,
         tag_id: tag.id,
       }));
@@ -382,7 +385,10 @@ export const createPost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'upd
         .from('blog_posts_tags')
         .insert(postTagsData);
       
-      if (tagsError) throw tagsError;
+      if (tagsError) {
+        console.error('Error adding post tags:', tagsError);
+        throw tagsError;
+      }
     }
     
     return data?.id || null;
@@ -397,8 +403,10 @@ export const updatePost = async (id: string, post: Partial<BlogPost>): Promise<b
     const admin = getCurrentAdmin();
     if (!admin) throw new Error('Not authenticated as admin');
     
+    // Extract tags from post object
+    const { tags, ...postData } = post;
+    
     // If changing status to published, set the published_at date
-    const postData = { ...post };
     if (post.status === 'published') {
       const currentPost = await getPostById(id);
       if (currentPost && currentPost.status !== 'published') {
@@ -414,7 +422,7 @@ export const updatePost = async (id: string, post: Partial<BlogPost>): Promise<b
     if (error) throw error;
     
     // Handle tags if provided
-    if (post.tags) {
+    if (tags) {
       // First, remove all existing tag relationships
       const { error: deleteError } = await supabase
         .from('blog_posts_tags')
@@ -424,8 +432,8 @@ export const updatePost = async (id: string, post: Partial<BlogPost>): Promise<b
       if (deleteError) throw deleteError;
       
       // Then add the new ones
-      if (post.tags.length > 0) {
-        const postTagsData = post.tags.map(tag => ({
+      if (tags.length > 0) {
+        const postTagsData = tags.map(tag => ({
           post_id: id,
           tag_id: tag.id,
         }));
