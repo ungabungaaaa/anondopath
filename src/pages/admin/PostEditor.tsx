@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
@@ -333,14 +332,14 @@ const PostEditor = () => {
                   <div>
                     <Label htmlFor="category">Category</Label>
                     <Select 
-                      value={post.category_id || ''} 
+                      value={post.category_id || 'uncategorized'} 
                       onValueChange={handleCategoryChange}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Uncategorized</SelectItem>
+                        <SelectItem value="uncategorized">Uncategorized</SelectItem>
                         {categories.map(category => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
