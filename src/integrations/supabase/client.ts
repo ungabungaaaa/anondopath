@@ -20,5 +20,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// We don't need to initialize the storage bucket here anymore
-// since we've created it with SQL and set up proper RLS policies
+// Helper function to get auth headers for admin operations
+export const getAuthHeaders = () => {
+  const admin = JSON.parse(localStorage.getItem('blogAdminUser') || '{}');
+  return admin?.id ? {
+    headers: {
+      'Authorization': `Bearer ${admin.id}`,
+      'x-admin-access': 'true'
+    }
+  } : {};
+};

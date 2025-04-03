@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+
+import { supabase, getAuthHeaders } from '@/integrations/supabase/client';
 import { 
   BlogPost, 
   BlogCategory, 
@@ -355,6 +356,8 @@ export const createPost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'upd
     const admin = getCurrentAdmin();
     if (!admin) throw new Error('Not authenticated as admin');
     
+    console.log("Creating post with admin:", admin);
+    
     // Extract tags from post object and create a clean post object without tags
     const { tags, ...postDataRaw } = {
       ...post,
@@ -373,6 +376,8 @@ export const createPost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'upd
       return acc;
     }, {} as Record<string, any>);
     
+    console.log("Processed post data:", postData);
+    
     // Insert the post without tags
     const { data, error } = await supabase
       .from('blog_posts')
@@ -384,6 +389,8 @@ export const createPost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'upd
       console.error('Error creating post:', error);
       throw error;
     }
+    
+    console.log("Post created successfully:", data);
     
     // Handle tags if provided
     if (tags && tags.length > 0 && data) {
@@ -693,11 +700,16 @@ export const uploadImage = async (file: File): Promise<string | null> => {
     const fileName = `${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
     const filePath = `${fileName}`;
     
+    console.log("Uploading image:", filePath);
+    
     const { error } = await supabase.storage
       .from('blog')
       .upload(filePath, file);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw error;
+    }
     
     const { data } = supabase.storage
       .from('blog')
