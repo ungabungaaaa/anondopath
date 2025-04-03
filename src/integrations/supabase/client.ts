@@ -10,7 +10,8 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    persistSession: true
+    persistSession: true,
+    autoRefreshToken: true
   },
   global: {
     headers: {
@@ -19,19 +20,5 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// Initialize storage bucket for blog images if it doesn't exist
-(async () => {
-  try {
-    const { data: buckets } = await supabase.storage.listBuckets();
-    if (!buckets?.find(bucket => bucket.name === 'blog')) {
-      await supabase.storage.createBucket('blog', {
-        public: true,
-        fileSizeLimit: 5242880, // 5MB
-        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
-      });
-      console.log('Blog storage bucket created successfully');
-    }
-  } catch (error) {
-    console.error('Error initializing blog storage bucket:', error);
-  }
-})();
+// We don't need to initialize the storage bucket here anymore
+// since we've created it with SQL and set up proper RLS policies
