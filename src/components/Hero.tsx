@@ -1,6 +1,8 @@
+
 import React from 'react';
 import Button from './Button';
 import { ArrowRight, Download, BookOpen, Video, BarChart, Lightbulb } from 'lucide-react';
+
 const Hero = () => {
   return <section className="relative pt-36 pb-16 bg-gradient-to-br from-white via-blue-50 to-white overflow-hidden">
       {/* Background Elements */}
@@ -12,10 +14,10 @@ const Hero = () => {
         <div className="absolute top-[30%] left-[15%] w-32 h-32 rounded-full bg-anondopath-teal/10 animate-float"></div>
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
+      <div className="container mx-auto px-6 md:px-8 relative z-10">
         <div className="flex flex-col md:flex-row items-center gap-8">
           {/* Hero Content - Left Side */}
-          <div className="w-full lg:w-1/2 space-y-8 animate-fade-in">
+          <div className="w-full lg:w-1/2 space-y-8 animate-fade-in pl-2 md:pl-4">
             <div>
               <span className="inline-block py-1 px-3 text-sm bg-anondopath-teal/10 text-anondopath-teal rounded-full mb-4 font-medium">
                 Innovative Learning Platform
@@ -76,4 +78,5 @@ const Hero = () => {
       </div>
     </section>;
 };
+
 export default Hero;
