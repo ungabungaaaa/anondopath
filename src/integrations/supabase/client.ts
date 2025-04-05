@@ -35,3 +35,33 @@ export const getAuthHeaders = () => {
     return {};
   }
 };
+
+// Function to properly call edge functions
+export const callEdgeFunction = async (functionName: string, options: any = {}) => {
+  try {
+    console.log(`Calling edge function: ${functionName}`, options);
+    const { data, error } = await supabase.functions.invoke(
+      functionName,
+      {
+        ...options,
+        headers: {
+          ...options.headers,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+    
+    if (error) {
+      console.error(`Edge function error (${functionName}):`, error);
+      throw error;
+    }
+    
+    return { data, error: null };
+  } catch (error: any) {
+    console.error(`Failed to call edge function (${functionName}):`, error);
+    return { 
+      data: null, 
+      error: error.message || 'Failed to call edge function'
+    };
+  }
+};

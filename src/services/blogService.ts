@@ -1,4 +1,4 @@
-import { supabase, getAuthHeaders } from '@/integrations/supabase/client';
+import { supabase, getAuthHeaders, callEdgeFunction } from '@/integrations/supabase/client';
 import { 
   BlogPost, 
   BlogCategory, 
@@ -14,16 +14,13 @@ export const loginAdmin = async (credentials: AdminLoginCredentials): Promise<Bl
     console.log("Attempting to login admin with credentials:", { username: credentials.username });
     
     // Call our admin-login edge function with proper error handling
-    const { data, error } = await supabase.functions.invoke('admin-login', {
-      body: credentials,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    const { data, error } = await callEdgeFunction('admin-login', {
+      body: credentials
     });
 
     if (error) {
       console.error("Edge function error:", error);
-      throw new Error(error.message || 'Failed to authenticate');
+      throw new Error(error || 'Failed to authenticate');
     }
     
     if (!data || !data.user) {
