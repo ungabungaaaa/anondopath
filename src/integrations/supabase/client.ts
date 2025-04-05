@@ -40,22 +40,29 @@ export const getAuthHeaders = () => {
 export const callEdgeFunction = async (functionName: string, options: any = {}) => {
   try {
     console.log(`Calling edge function: ${functionName}`, options);
-    const { data, error } = await supabase.functions.invoke(
-      functionName,
-      {
-        ...options,
-        headers: {
-          ...options.headers,
-          'Content-Type': 'application/json',
-        }
-      }
-    );
     
-    if (error) {
-      console.error(`Edge function error (${functionName}):`, error);
-      throw error;
+    // Use direct fetch for more control over the request
+    const url = `${window.location.origin}/functions/${functionName}`;
+    
+    const adminHeaders = getAuthHeaders().headers || {};
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...adminHeaders,
+        ...options.headers
+      },
+      body: JSON.stringify(options.body || {})
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Edge function error (${functionName}):`, errorText);
+      throw new Error(errorText || `HTTP error ${response.status}`);
     }
     
+    const data = await response.json();
     return { data, error: null };
   } catch (error: any) {
     console.error(`Failed to call edge function (${functionName}):`, error);
