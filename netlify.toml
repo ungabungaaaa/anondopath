@@ -10,4 +10,3 @@ to = "https://dgxiprrcsqlybhbopcoy.supabase.co/functions/v1/:splat"
 status = 200
 force = true
 headers = {Access-Control-Allow-Origin = "*", Access-Control-Allow-Headers = "authorization, x-client-info, apikey, content-type, x-admin-access"}
-
