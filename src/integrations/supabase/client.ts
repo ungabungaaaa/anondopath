@@ -42,7 +42,8 @@ export const callEdgeFunction = async (functionName: string, options: any = {}) 
     console.log(`Calling edge function: ${functionName}`, options);
     
     // Use direct fetch for more control over the request
-    const url = `${window.location.origin}/functions/${functionName}`;
+    // We need to use the direct Supabase URL instead of relying on the proxy
+    const url = `https://dgxiprrcsqlybhbopcoy.supabase.co/functions/v1/${functionName}`;
     
     const adminHeaders = getAuthHeaders().headers || {};
     
@@ -50,6 +51,7 @@ export const callEdgeFunction = async (functionName: string, options: any = {}) 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'apikey': SUPABASE_PUBLISHABLE_KEY,
         ...adminHeaders,
         ...options.headers
       },
