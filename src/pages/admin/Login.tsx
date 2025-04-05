@@ -31,10 +31,14 @@ const AdminLogin = () => {
     try {
       if (!username || !password) {
         setLocalError('Username and password are required');
+        setIsSubmitting(false);
         return;
       }
 
+      console.log("Attempting login with username:", username);
       const success = await login({ username, password });
+      console.log("Login result:", success);
+      
       if (success) {
         navigate('/admin/dashboard');
       }

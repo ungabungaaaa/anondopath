@@ -22,11 +22,16 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
 // Helper function to get auth headers for admin operations
 export const getAuthHeaders = () => {
-  const admin = JSON.parse(localStorage.getItem('blogAdminUser') || '{}');
-  return admin?.id ? {
-    headers: {
-      'Authorization': `Bearer ${admin.id}`,
-      'x-admin-access': 'true'
-    }
-  } : {};
+  try {
+    const admin = JSON.parse(localStorage.getItem('blogAdminUser') || '{}');
+    return admin?.id ? {
+      headers: {
+        'Authorization': `Bearer ${admin.id}`,
+        'x-admin-access': 'true'
+      }
+    } : {};
+  } catch (error) {
+    console.error('Error getting auth headers:', error);
+    return {};
+  }
 };

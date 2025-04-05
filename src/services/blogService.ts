@@ -1,4 +1,3 @@
-
 import { supabase, getAuthHeaders } from '@/integrations/supabase/client';
 import { 
   BlogPost, 
@@ -48,11 +47,16 @@ export const logoutAdmin = (): void => {
 };
 
 export const getCurrentAdmin = (): BlogUser | null => {
-  const userJson = localStorage.getItem('blogAdminUser');
-  if (userJson) {
-    return JSON.parse(userJson);
+  try {
+    const userJson = localStorage.getItem('blogAdminUser');
+    if (userJson) {
+      return JSON.parse(userJson);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error retrieving admin session:", error);
+    return null;
   }
-  return null;
 };
 
 // Blog Posts
@@ -354,7 +358,10 @@ export const getAdminPosts = async (
 export const createPost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'>): Promise<string | null> => {
   try {
     const admin = getCurrentAdmin();
-    if (!admin) throw new Error('Not authenticated as admin');
+    if (!admin) {
+      console.error("Not authenticated as admin");
+      throw new Error('Not authenticated as admin');
+    }
     
     console.log("Creating post with admin:", admin);
     
@@ -377,6 +384,10 @@ export const createPost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'upd
     }, {} as Record<string, any>);
     
     console.log("Processed post data:", postData);
+    
+    // Add auth headers to the request
+    const authOptions = getAuthHeaders();
+    console.log("Using auth options:", authOptions);
     
     // Insert the post without tags
     const { data, error } = await supabase

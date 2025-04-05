@@ -30,7 +30,9 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
   useEffect(() => {
     const initAuth = () => {
       try {
+        console.log("Initializing admin auth context");
         const user = getCurrentAdmin();
+        console.log("Current admin user:", user);
         setAuthState({
           user,
           isAuthenticated: !!user,
@@ -38,6 +40,7 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
           error: null
         });
       } catch (error) {
+        console.error("Auth initialization error:", error);
         setAuthState({
           user: null,
           isAuthenticated: false,
@@ -51,10 +54,12 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, []);
 
   const login = async (credentials: AdminLoginCredentials): Promise<boolean> => {
+    console.log("Login attempt in context with username:", credentials.username);
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
       const user = await loginAdmin(credentials);
       if (user) {
+        console.log("Login successful in context:", user);
         setAuthState({
           user,
           isAuthenticated: true,
@@ -87,6 +92,7 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const logout = () => {
+    console.log("Logging out in context");
     logoutAdmin();
     setAuthState({
       user: null,
