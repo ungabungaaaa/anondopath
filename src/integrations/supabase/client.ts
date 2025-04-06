@@ -42,7 +42,7 @@ export const callEdgeFunction = async (functionName: string, options: any = {}) 
     console.log(`Calling edge function: ${functionName}`, options);
     
     // Use the Netlify proxy path with trailing slash to ensure proper routing
-    const url = `/functions/${functionName}/`;
+    const url = `/functions/${functionName}`;
     
     const adminHeaders = getAuthHeaders().headers || {};
     
