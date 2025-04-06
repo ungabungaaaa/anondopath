@@ -3,3 +3,7 @@ project_id = "dgxiprrcsqlybhbopcoy"
 
 [api]
 enabled = true
+
+[functions]
+[functions.admin-login]
+verify_jwt = false
