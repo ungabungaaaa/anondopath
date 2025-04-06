@@ -41,8 +41,8 @@ export const callEdgeFunction = async (functionName: string, options: any = {}) 
   try {
     console.log(`Calling edge function: ${functionName}`, options);
     
-    // Use the Netlify proxy which will route to the Supabase edge function
-    const url = `/functions/${functionName}`;
+    // Use the Netlify proxy path with trailing slash to ensure proper routing
+    const url = `/functions/${functionName}/`;
     
     const adminHeaders = getAuthHeaders().headers || {};
     
