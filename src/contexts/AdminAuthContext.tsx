@@ -34,7 +34,7 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
         const user = getCurrentAdmin();
         console.log("Current admin user:", user);
         setAuthState({
-          user,
+          user: user as BlogUser | null,
           isAuthenticated: !!user,
           isLoading: false,
           error: null
@@ -61,7 +61,7 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
       if (user) {
         console.log("Login successful in context:", user);
         setAuthState({
-          user,
+          user: user as BlogUser,
           isAuthenticated: true,
           isLoading: false,
           error: null

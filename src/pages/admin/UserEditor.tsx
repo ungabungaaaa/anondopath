@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
@@ -8,9 +9,28 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Save, UserCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { BlogUser } from '@/types/blog';
-import bcrypt from 'bcryptjs';
+
+// Mock function for bcrypt hashing
+const mockHash = async (password: string) => {
+  // In a real app, you would use bcrypt
+  return `hashed_${password}`;
+};
+
+// Get users from localStorage
+const getUsers = (): BlogUser[] => {
+  try {
+    return JSON.parse(localStorage.getItem('blogUsers') || '[]');
+  } catch (error) {
+    console.error('Error getting users:', error);
+    return [];
+  }
+};
+
+// Save users to localStorage
+const saveUsers = (users: BlogUser[]): void => {
+  localStorage.setItem('blogUsers', JSON.stringify(users));
+};
 
 const UserEditor = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,18 +59,16 @@ const UserEditor = () => {
       return;
     }
     
+    // Fetch data
     const fetchData = async () => {
       try {
         setIsLoading(true);
         
         if (isEditMode && id) {
-          const { data, error } = await supabase
-            .from('blog_users')
-            .select('*')
-            .eq('id', id)
-            .single();
+          const users = getUsers();
+          const foundUser = users.find(u => u.id === id);
           
-          if (error || !data) {
+          if (!foundUser) {
             toast({
               variant: "destructive",
               title: "User not found",
@@ -60,7 +78,7 @@ const UserEditor = () => {
             return;
           }
           
-          const { password, ...userWithoutPassword } = data;
+          const { password, ...userWithoutPassword } = foundUser;
           setUser(userWithoutPassword);
         }
       } catch (error) {
@@ -135,18 +153,29 @@ const UserEditor = () => {
     try {
       setIsSaving(true);
       
+      const users = getUsers();
+      
       let hashedPassword;
       if (!isEditMode || (isEditMode && changePassword && newPassword)) {
         const passwordToHash = isEditMode ? newPassword : user.password;
-        hashedPassword = await bcrypt.hash(passwordToHash, 6);
+        hashedPassword = await mockHash(passwordToHash || '');
       }
       
       if (isEditMode && id) {
+        // Update existing user
+        const userIndex = users.findIndex(u => u.id === id);
+        
+        if (userIndex === -1) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "User not found.",
+          });
+          return;
+        }
+        
         const updates: Partial<BlogUser> = {
-          username: user.username,
-          email: user.email,
-          full_name: user.full_name,
-          is_admin: user.is_admin,
+          ...user,
           updated_at: new Date().toISOString(),
         };
         
@@ -154,26 +183,44 @@ const UserEditor = () => {
           updates.password = hashedPassword;
         }
         
-        const { error } = await supabase
-          .from('blog_users')
-          .update(updates)
-          .eq('id', id);
+        users[userIndex] = { ...users[userIndex], ...updates };
+        saveUsers(users);
         
-        if (error) throw error;
+        // If the current user was updated, update the stored user
+        if (id === currentUser?.id) {
+          localStorage.setItem('blogAdminUser', JSON.stringify(users[userIndex]));
+        }
         
         toast({
           title: "User updated",
           description: "User information has been updated successfully.",
         });
       } else {
-        const { error } = await supabase
-          .from('blog_users')
-          .insert([{ 
-            ...user,
-            password: hashedPassword,
-          }]);
+        // Create new user
+        const existingUser = users.find(u => u.username === user.username);
         
-        if (error) throw error;
+        if (existingUser) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Username already exists. Please choose a different username.",
+          });
+          return;
+        }
+        
+        const newUser: BlogUser = {
+          id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+          username: user.username || '',
+          password: hashedPassword || '',
+          email: user.email || null,
+          full_name: user.full_name || null,
+          is_admin: user.is_admin === undefined ? true : user.is_admin,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        
+        users.push(newUser);
+        saveUsers(users);
         
         toast({
           title: "User created",
@@ -185,19 +232,11 @@ const UserEditor = () => {
     } catch (error: any) {
       console.error('Save error:', error);
       
-      if (error.code === '23505') {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Username already exists. Please choose a different username.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Save failed",
-          description: error.message || "There was an error saving the user.",
-        });
-      }
+      toast({
+        variant: "destructive",
+        title: "Save failed",
+        description: error.message || "There was an error saving the user.",
+      });
     } finally {
       setIsSaving(false);
     }

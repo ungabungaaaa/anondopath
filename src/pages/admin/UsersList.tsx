@@ -34,8 +34,31 @@ import {
   Users
 } from 'lucide-react';
 
-import { supabase } from '@/integrations/supabase/client';
 import { BlogUser } from '@/types/blog';
+
+// Get users from localStorage
+const getUsers = (): BlogUser[] => {
+  try {
+    // Initialize with the admin user if empty
+    const users = JSON.parse(localStorage.getItem('blogUsers') || '[]');
+    if (users.length === 0) {
+      const adminUser = JSON.parse(localStorage.getItem('blogAdminUser') || 'null');
+      if (adminUser) {
+        users.push(adminUser);
+        localStorage.setItem('blogUsers', JSON.stringify(users));
+      }
+    }
+    return users;
+  } catch (error) {
+    console.error('Error getting users:', error);
+    return [];
+  }
+};
+
+// Save users to localStorage
+const saveUsers = (users: BlogUser[]): void => {
+  localStorage.setItem('blogUsers', JSON.stringify(users));
+};
 
 const AdminUsersList = () => {
   const { isAuthenticated, user: currentUser } = useAdminAuth();
@@ -73,16 +96,9 @@ const AdminUsersList = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      
-      const { data, error } = await supabase
-        .from('blog_users')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      setUsers(data || []);
-      setFilteredUsers(data || []);
+      const allUsers = getUsers();
+      setUsers(allUsers);
+      setFilteredUsers(allUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -118,17 +134,15 @@ const AdminUsersList = () => {
     try {
       setIsDeleting(true);
       
-      const { error } = await supabase
-        .from('blog_users')
-        .delete()
-        .eq('id', id);
-        
-      if (error) throw error;
+      const users = getUsers();
+      const updatedUsers = users.filter(user => user.id !== id);
+      saveUsers(updatedUsers);
       
       toast({
         title: "User deleted",
         description: "The user account has been deleted successfully.",
       });
+      
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);

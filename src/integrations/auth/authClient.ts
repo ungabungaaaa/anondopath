@@ -1,5 +1,5 @@
 
-// This file replaces the Supabase client with a simple front-end authentication
+// This file implements a simple front-end authentication
 // for development purposes
 
 // Admin user credentials - in a real app, these would never be stored here
@@ -11,7 +11,11 @@ const ADMIN_CREDENTIALS = {
 export interface AuthUser {
   id: string;
   username: string;
-  full_name?: string;
+  email: string | null;
+  full_name: string | null;
+  is_admin: boolean;
+  created_at: string;
+  updated_at: string;
   role: 'admin';
 }
 
@@ -39,6 +43,10 @@ export const authenticateAdmin = async (username: string, password: string): Pro
       id: '123e4567-e89b-12d3-a456-426614174000', // Simulated UUID
       username: username,
       full_name: 'Admin User',
+      email: 'admin@example.com',
+      is_admin: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       role: 'admin'
     };
     
