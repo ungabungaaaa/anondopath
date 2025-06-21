@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
@@ -5,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, LineChart, PieChart } from '@/components/ui/chart';
 import { FileText, FilePlus, MessageSquare, Tag, CheckCircle, XCircle, FolderOpen } from 'lucide-react';
+import { getStoredPosts, getStoredCategories, getStoredTags, getStoredComments } from '@/services/localStorageService';
 
 interface PostTimeData {
   date: string;
@@ -17,35 +19,18 @@ const Dashboard = () => {
   const navigate = useNavigate();
   
   const [stats, setStats] = useState({
-    totalPosts: 10,
-    publishedPosts: 6,
-    draftPosts: 4,
-    categories: 5,
-    tags: 8,
-    comments: 12,
-    pendingComments: 3
+    totalPosts: 0,
+    publishedPosts: 0,
+    draftPosts: 0,
+    categories: 0,
+    tags: 0,
+    comments: 0,
+    pendingComments: 0
   });
   
-  const [postsOverTime, setPostsOverTime] = useState<PostTimeData[]>([
-    { date: '2025-03-01', published: 2, draft: 1 },
-    { date: '2025-03-10', published: 1, draft: 2 },
-    { date: '2025-03-20', published: 3, draft: 1 },
-  ]);
-  
-  const [categoryDistribution, setCategoryDistribution] = useState<{ name: string, value: number }[]>([
-    { name: 'Technology', value: 4 },
-    { name: 'Business', value: 3 },
-    { name: 'Design', value: 2 },
-    { name: 'Marketing', value: 1 }
-  ]);
-  
-  const [tagDistribution, setTagDistribution] = useState<{ name: string, value: number }[]>([
-    { name: 'React', value: 5 },
-    { name: 'JavaScript', value: 4 },
-    { name: 'UI/UX', value: 3 },
-    { name: 'Startup', value: 2 }
-  ]);
-  
+  const [postsOverTime, setPostsOverTime] = useState<PostTimeData[]>([]);
+  const [categoryDistribution, setCategoryDistribution] = useState<{ name: string, value: number }[]>([]);
+  const [tagDistribution, setTagDistribution] = useState<{ name: string, value: number }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -54,11 +39,78 @@ const Dashboard = () => {
       return;
     }
     
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    const loadDashboardData = () => {
+      try {
+        setIsLoading(true);
+        
+        const posts = getStoredPosts();
+        const categories = getStoredCategories();
+        const tags = getStoredTags();
+        const comments = getStoredComments();
+        
+        const publishedPosts = posts.filter(p => p.status === 'published').length;
+        const draftPosts = posts.filter(p => p.status === 'draft').length;
+        const pendingComments = comments.filter(c => !c.is_approved).length;
+        
+        setStats({
+          totalPosts: posts.length,
+          publishedPosts,
+          draftPosts,
+          categories: categories.length,
+          tags: tags.length,
+          comments: comments.length,
+          pendingComments
+        });
+        
+        // Generate posts over time data
+        const timeData: { [key: string]: { published: number, draft: number } } = {};
+        posts.forEach(post => {
+          const date = new Date(post.created_at).toISOString().split('T')[0];
+          if (!timeData[date]) {
+            timeData[date] = { published: 0, draft: 0 };
+          }
+          timeData[date][post.status]++;
+        });
+        
+        const sortedTimeData = Object.entries(timeData)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .slice(-7) // Last 7 days
+          .map(([date, data]) => ({
+            date,
+            published: data.published,
+            draft: data.draft
+          }));
+        
+        setPostsOverTime(sortedTimeData);
+        
+        // Category distribution
+        const categoryCount: { [key: string]: number } = {};
+        categories.forEach(cat => {
+          categoryCount[cat.name] = posts.filter(p => p.category_id === cat.id).length;
+        });
+        
+        setCategoryDistribution(
+          Object.entries(categoryCount)
+            .filter(([, count]) => count > 0)
+            .map(([name, value]) => ({ name, value }))
+        );
+        
+        // Tag distribution (mock data for now since we don't have post-tag relationships)
+        setTagDistribution([
+          { name: 'React', value: Math.floor(posts.length * 0.4) },
+          { name: 'JavaScript', value: Math.floor(posts.length * 0.3) },
+          { name: 'UI/UX', value: Math.floor(posts.length * 0.2) },
+          { name: 'Startup', value: Math.floor(posts.length * 0.1) }
+        ]);
+        
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    return () => clearTimeout(timer);
+    loadDashboardData();
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
@@ -117,7 +169,7 @@ const Dashboard = () => {
                 data={postsOverTime}
                 categories={['published', 'draft']}
                 index="date"
-                colors={['green', 'amber']}
+                colors={['#10b981', '#f59e0b']}
                 valueFormatter={(value) => `${value} posts`}
               />
             ) : (
