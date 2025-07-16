@@ -28,6 +28,8 @@ import TagEditor from "./pages/admin/TagEditor";
 import AdminCommentsList from "./pages/admin/CommentsList";
 import AdminUsersList from "./pages/admin/UsersList";
 import UserEditor from "./pages/admin/UserEditor";
+import Analytics from "./pages/admin/Analytics";
+import MetricsManagement from "./pages/admin/MetricsManagement";
 
 // ScrollToTop component to scroll to top when navigating between pages
 const ScrollToTop = () => {
@@ -71,6 +73,8 @@ const AppRoutes = () => {
           <Route path="users" element={<AdminUsersList />} />
           <Route path="users/new" element={<UserEditor />} />
           <Route path="users/:id" element={<UserEditor />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="analytics/metrics" element={<MetricsManagement />} />
         </Route>
         
         {/* 404 Catch-all */}

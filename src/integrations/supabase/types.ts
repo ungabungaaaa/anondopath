@@ -226,6 +226,124 @@ export type Database = {
         }
         Relationships: []
       }
+      metric_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      metric_entries: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          date: string
+          id: string
+          metric_id: string
+          notes: string | null
+          updated_at: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          id?: string
+          metric_id: string
+          notes?: string | null
+          updated_at?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          id?: string
+          metric_id?: string
+          notes?: string | null
+          updated_at?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metric_entries_metric_id_fkey"
+            columns: ["metric_id"]
+            isOneToOne: false
+            referencedRelation: "startup_metrics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      startup_metrics: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          metric_type: string
+          name: string
+          target_value: number | null
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          metric_type: string
+          name: string
+          target_value?: number | null
+          unit: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          metric_type?: string
+          name?: string
+          target_value?: number | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "startup_metrics_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "metric_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

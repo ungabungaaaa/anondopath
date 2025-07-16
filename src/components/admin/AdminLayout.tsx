@@ -23,7 +23,8 @@ import {
   Menu,
   X,
   ChevronRight,
-  Folder
+  Folder,
+  BarChart3
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -44,6 +45,7 @@ const AdminLayout = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+    { name: 'Analytics', path: '/admin/analytics', icon: <BarChart3 className="h-5 w-5" /> },
     { name: 'Posts', path: '/admin/posts', icon: <FileText className="h-5 w-5" /> },
     { name: 'Categories', path: '/admin/categories', icon: <Folder className="h-5 w-5" /> },
     { name: 'Tags', path: '/admin/tags', icon: <Tag className="h-5 w-5" /> },
