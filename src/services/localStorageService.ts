@@ -1,10 +1,110 @@
-
 import { BlogPost, BlogCategory, BlogTag, BlogComment } from '@/types/blog';
+
+// Helper function to get categories (for circular dependency resolution)
+const getCategoriesSync = (): BlogCategory[] => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('blogCategories') || '[]');
+    if (stored.length === 0) {
+      const defaultCategories = [
+        { id: 'cat-1', name: 'Technology', slug: 'technology', description: 'Tech articles', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: 'cat-2', name: 'Business', slug: 'business', description: 'Business insights', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: 'cat-3', name: 'Design', slug: 'design', description: 'Design tutorials', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+      ];
+      localStorage.setItem('blogCategories', JSON.stringify(defaultCategories));
+      return defaultCategories;
+    }
+    return stored;
+  } catch {
+    return [];
+  }
+};
+
+// Helper function to get tags (for circular dependency resolution)
+const getTagsSync = (): BlogTag[] => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('blogTags') || '[]');
+    if (stored.length === 0) {
+      const defaultTags = [
+        { id: 'tag-1', name: 'React', slug: 'react', created_at: new Date().toISOString() },
+        { id: 'tag-2', name: 'JavaScript', slug: 'javascript', created_at: new Date().toISOString() },
+        { id: 'tag-3', name: 'UI/UX', slug: 'ui-ux', created_at: new Date().toISOString() },
+        { id: 'tag-4', name: 'Startup', slug: 'startup', created_at: new Date().toISOString() }
+      ];
+      localStorage.setItem('blogTags', JSON.stringify(defaultTags));
+      return defaultTags;
+    }
+    return stored;
+  } catch {
+    return [];
+  }
+};
 
 // Posts
 export const getStoredPosts = (): BlogPost[] => {
   try {
-    return JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    const stored = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    if (stored.length === 0) {
+      // Ensure categories and tags exist first
+      const categories = getCategoriesSync();
+      const tags = getTagsSync();
+      
+      const samplePosts: BlogPost[] = [
+        {
+          id: 'post-1',
+          title: 'Getting Started with React',
+          slug: 'getting-started-with-react',
+          excerpt: 'Learn the basics of React development',
+          content: '<p>React is a powerful JavaScript library for building user interfaces...</p>',
+          featured_image: null,
+          category_id: categories[0]?.id || null,
+          category: categories[0] || null,
+          status: 'published',
+          published_at: new Date().toISOString(),
+          read_time: '5 min read',
+          author_id: null,
+          tags: [tags[0], tags[1]].filter(Boolean),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'post-2', 
+          title: 'Building Better UIs',
+          slug: 'building-better-uis',
+          excerpt: 'Tips for creating amazing user interfaces',
+          content: '<p>User interface design is crucial for modern applications...</p>',
+          featured_image: null,
+          category_id: categories[2]?.id || null,
+          category: categories[2] || null,
+          status: 'published',
+          published_at: new Date(Date.now() - 86400000).toISOString(),
+          read_time: '3 min read',
+          author_id: null,
+          tags: [tags[2]].filter(Boolean),
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          updated_at: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: 'post-3',
+          title: 'Startup Growth Strategies',
+          slug: 'startup-growth-strategies',
+          excerpt: 'Key strategies for scaling your startup',
+          content: '<p>Growing a startup requires careful planning and execution...</p>',
+          featured_image: null,
+          category_id: categories[1]?.id || null,
+          category: categories[1] || null,
+          status: 'draft',
+          published_at: null,
+          read_time: '7 min read',
+          author_id: null,
+          tags: [tags[3]].filter(Boolean),
+          created_at: new Date(Date.now() - 172800000).toISOString(),
+          updated_at: new Date(Date.now() - 172800000).toISOString()
+        }
+      ];
+      localStorage.setItem('blogPosts', JSON.stringify(samplePosts));
+      return samplePosts;
+    }
+    return stored;
   } catch {
     return [];
   }
@@ -46,22 +146,7 @@ export const deleteStoredPost = (id: string): boolean => {
 
 // Categories
 export const getStoredCategories = (): BlogCategory[] => {
-  try {
-    const stored = JSON.parse(localStorage.getItem('blogCategories') || '[]');
-    if (stored.length === 0) {
-      // Initialize with default categories
-      const defaultCategories = [
-        { id: 'cat-1', name: 'Technology', slug: 'technology', description: 'Tech articles', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: 'cat-2', name: 'Business', slug: 'business', description: 'Business insights', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: 'cat-3', name: 'Design', slug: 'design', description: 'Design tutorials', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
-      ];
-      localStorage.setItem('blogCategories', JSON.stringify(defaultCategories));
-      return defaultCategories;
-    }
-    return stored;
-  } catch {
-    return [];
-  }
+  return getCategoriesSync();
 };
 
 export const saveStoredCategories = (categories: BlogCategory[]): void => {
@@ -100,23 +185,7 @@ export const deleteStoredCategory = (id: string): boolean => {
 
 // Tags
 export const getStoredTags = (): BlogTag[] => {
-  try {
-    const stored = JSON.parse(localStorage.getItem('blogTags') || '[]');
-    if (stored.length === 0) {
-      // Initialize with default tags
-      const defaultTags = [
-        { id: 'tag-1', name: 'React', slug: 'react', created_at: new Date().toISOString() },
-        { id: 'tag-2', name: 'JavaScript', slug: 'javascript', created_at: new Date().toISOString() },
-        { id: 'tag-3', name: 'UI/UX', slug: 'ui-ux', created_at: new Date().toISOString() },
-        { id: 'tag-4', name: 'Startup', slug: 'startup', created_at: new Date().toISOString() }
-      ];
-      localStorage.setItem('blogTags', JSON.stringify(defaultTags));
-      return defaultTags;
-    }
-    return stored;
-  } catch {
-    return [];
-  }
+  return getTagsSync();
 };
 
 export const saveStoredTags = (tags: BlogTag[]): void => {
@@ -155,7 +224,33 @@ export const deleteStoredTag = (id: string): boolean => {
 // Comments
 export const getStoredComments = (): BlogComment[] => {
   try {
-    return JSON.parse(localStorage.getItem('blogComments') || '[]');
+    const stored = JSON.parse(localStorage.getItem('blogComments') || '[]');
+    if (stored.length === 0) {
+      // Initialize with sample comments
+      const sampleComments: BlogComment[] = [
+        {
+          id: 'comment-1',
+          post_id: 'post-1',
+          author_name: 'John Doe',
+          author_email: 'john@example.com',
+          content: 'Great article! Very helpful for beginners.',
+          is_approved: true,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 'comment-2',
+          post_id: 'post-1',
+          author_name: 'Jane Smith',
+          author_email: 'jane@example.com',
+          content: 'Looking forward to more React tutorials!',
+          is_approved: false,
+          created_at: new Date(Date.now() - 3600000).toISOString()
+        }
+      ];
+      localStorage.setItem('blogComments', JSON.stringify(sampleComments));
+      return sampleComments;
+    }
+    return stored;
   } catch {
     return [];
   }

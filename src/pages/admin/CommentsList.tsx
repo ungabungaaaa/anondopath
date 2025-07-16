@@ -43,7 +43,7 @@ import {
   Loader2,
   ExternalLink
 } from 'lucide-react';
-import { getAdminComments, approveComment, deleteComment, getPostBySlug } from '@/services/blogService';
+import { getAdminComments, approveComment, deleteComment, getPostById } from '@/services/blogService';
 import { BlogComment } from '@/types/blog';
 import { Link } from 'react-router-dom';
 
@@ -94,7 +94,7 @@ const AdminCommentsList = () => {
         fetchedComments.map(async (comment) => {
           if (comment.post_id) {
             try {
-              const post = await getPostBySlug(comment.post_id);
+              const post = await getPostById(comment.post_id);
               return {
                 ...comment,
                 postTitle: post?.title || 'Unknown Post',
@@ -309,7 +309,7 @@ const AdminCommentsList = () => {
                       {formatDate(comment.created_at)}
                     </div>
                     <div className="mt-1">
-                      <Badge variant={comment.is_approved ? "success" : "outline"}>
+                      <Badge variant={comment.is_approved ? "default" : "outline"}>
                         {comment.is_approved ? 'Approved' : 'Pending'}
                       </Badge>
                     </div>
